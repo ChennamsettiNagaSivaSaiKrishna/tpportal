@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
+const cookieParser = require("cookie-parser"); 
 
 // ==========================
 // Route Imports
@@ -42,10 +43,16 @@ const rolePermissionMappingRoutes = require("./routes/rolePermissionMappingRoute
 const app = express();
 
 // ==========================
-// Middleware
+// Middleware (UPDATED FOR PRODUCTION STANDARDS)
 // ==========================
-app.use(cors());
+app.use(cors({
+    origin: "http://localhost:3000", // Explicitly trust your React local port
+    credentials: true,                // Crucial: Allows backend to read/write HttpOnly session cookies
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
+app.use(cookieParser());            // Crucial: Automatically parses incoming cookie data for req.cookies
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // ==========================
