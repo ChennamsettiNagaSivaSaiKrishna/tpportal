@@ -1,0 +1,250 @@
+.skill-management-card {
+  width: 100%;
+  background: var(--bg-card, #121620);
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.06));
+  border-radius: 12px;
+  padding: 2.25rem;
+  box-sizing: border-box;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.skill-mgmt-header {
+  margin-bottom: 1.5rem;
+}
+
+.skill-mgmt-title {
+  color: var(--text-title, #ffffff);
+  font-size: 1.35rem;
+  font-weight: 800;
+  margin: 0;
+}
+
+.skill-mgmt-desc {
+  color: var(--text-sub, #94a3b8);
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+}
+
+/* Controls Grid Fields formatting */
+.catalog-control-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.catalog-search-node {
+  background: #11141d;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 0.65rem 1rem;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 0.875rem;
+  width: 100%;
+  max-width: 280px;
+  outline: none;
+}
+
+.catalog-search-node:focus {
+  border-color: var(--accent-color, #10b981);
+}
+
+.catalog-filter-row {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.catalog-filter-pill {
+  background: rgba(255,255,255,0.01);
+  border: 1px solid rgba(255,255,255,0.06);
+  padding: 0.45rem 1rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.catalog-filter-pill:hover {
+  color: #fff;
+  border-color: rgba(255,255,255,0.15);
+}
+
+.active-catalog-pill {
+  background: rgba(16, 185, 129, 0.1) !important;
+  border-color: var(--accent-color, #10b981) !important;
+  color: var(--accent-color, #10b981) !important;
+}
+
+/* Core Table Structural Formatting rules */
+.catalog-table-wrapper {
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 6px;
+  overflow: hidden;
+  background: rgba(255,255,255,0.01);
+}
+
+.catalog-data-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.catalog-data-table th {
+  background: rgba(18, 22, 32, 0.6);
+  padding: 0.75rem 1.25rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #6b7280;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.catalog-data-table td {
+  padding: 0.85rem 1.25rem;
+  font-size: 0.875rem;
+  color: #94a3b8;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+}
+
+.catalog-data-row:hover {
+  background: rgba(255,255,255,0.01);
+}
+
+.catalog-cell-bold {
+  color: #fff !important;
+  font-weight: 600;
+}
+
+.catalog-tag-pill {
+  font-size: 0.65rem;
+  font-weight: 700;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+}
+
+.catalog-action-btn {
+  background: none;
+  border: 1px solid var(--accent-color, #10b981);
+  color: var(--accent-color, #10b981);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.35rem 0.85rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.catalog-action-btn:hover:not(:disabled) {
+  background: var(--accent-color, #10b981);
+  color: #fff;
+}
+
+.catalog-action-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.catalog-empty-notice {
+  text-align: center;
+  padding: 2rem !important;
+  color: #6b7280;
+}
+
+/* Pagination Row Mechanics */
+.catalog-pagination-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1.25rem;
+  padding-top: 0.5rem;
+}
+
+.pagination-arrow-btn {
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: #fff;
+  padding: 0.4rem 1rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.pagination-arrow-btn:hover:not(:disabled) {
+  background: rgba(255,255,255,0.03);
+}
+
+.pagination-arrow-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.pagination-text-indicator {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+/* =========================================================================
+   DYNAMIC MESH FLOATING TOAST POPUP NOTIFICATION CAPTURES
+   ========================================================================= */
+   .toast-popup-window {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    background: #161b26;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 6px;
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    z-index: 99999 !important;
+    min-width: 320px;
+    max-width: 450px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 1px 3px rgba(0, 0, 0, 0.2);
+    animation: toastSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  
+  .toast-accent-bar {
+    width: 4px;
+    height: 24px;
+    border-radius: 2px;
+  }
+  
+  .toast-success .toast-accent-bar {
+    background-color: var(--accent-color, #10b981);
+    box-shadow: 0 0 8px var(--accent-color, #10b981);
+  }
+  
+  .toast-error .toast-accent-bar {
+    background-color: #ef4444;
+    box-shadow: 0 0 8px #ef4444;
+  }
+  
+  .toast-message-txt {
+    color: #ffffff;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+  
+  /* Keyframe entrance translation animations */
+  @keyframes toastSlideIn {
+    0% {
+      transform: translate3d(100%, 0, 0) scale(0.95);
+      opacity: 0;
+    }
+    100% {
+      transform: translate3d(0, 0, 0) scale(1);
+      opacity: 1;
+    }
+  }

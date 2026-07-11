@@ -1,0 +1,72 @@
+.global-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(5, 7, 10, 0.85);
+    backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999999999 !important; /* Forces it over the top of everything */
+  }
+  
+  .global-popup-card {
+    background: #11141d;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    width: 100%;
+    max-width: 460px;
+    padding: 2.25rem;
+    box-sizing: border-box;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+    animation: globalModalScale 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  
+  .global-popup-title {
+    margin: 0 0 0.75rem 0;
+    color: #ffffff;
+    font-size: 1.25rem;
+    font-weight: 800;
+  }
+  
+  .global-popup-message {
+    color: #94a3b8;
+    font-size: 0.925rem;
+    line-height: 1.5;
+    margin: 0 0 2rem 0;
+  }
+  
+  .global-popup-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+  }
+  
+  .global-popup-btn-confirm {
+    background: #10b981;
+    border: none;
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.85rem;
+    padding: 0.65rem 1.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .global-popup-btn-cancel {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #94a3b8;
+    font-weight: 600;
+    font-size: 0.85rem;
+    padding: 0.65rem 1.25rem;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  @keyframes globalModalScale {
+    0% { transform: scale(0.95); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }

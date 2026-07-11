@@ -3,6 +3,8 @@ const cors = require("cors");
 const path = require("path");
 const cookieParser = require("cookie-parser"); 
 
+
+
 // ==========================
 // Route Imports
 // ==========================
@@ -36,6 +38,7 @@ const notificationLogRoutes = require("./routes/notificationLogRoutes");
 const announcementRoutes = require("./routes/announcementRoutes");
 const studentPhaseAllocationRoutes = require("./routes/studentPhaseAllocationRoutes");
 const rolePermissionMappingRoutes = require("./routes/rolePermissionMappingRoutes");
+const assessmentRoutes = require('./routes/assesmentRoutes');
 
 // ==========================
 // Express App
@@ -71,6 +74,7 @@ app.use("/api/auth", authRoutes);
 // User Modules
 // ==========================
 app.use("/api/student", studentRoutes);
+app.use('/api/assessment', assessmentRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/placement-officer", placementOfficerRoutes);
 app.use("/api/placement-coordinator", placementCoordinatorRoutes);

@@ -1,0 +1,257 @@
+.assessment-container-card {
+    width: 100%;
+    background: rgba(18, 22, 32, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 8px;
+    padding: 2rem;
+    box-sizing: border-box;
+  }
+  
+  .assessment-viewport-header {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    padding-bottom: 1.25rem;
+    margin-bottom: 2rem;
+  }
+  
+  .exam-warning-text {
+    color: #f87171;
+    font-weight: 700;
+    font-size: 0.95rem;
+  }
+  
+  .exam-question-box {
+    background: #11141d;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    padding: 2rem;
+    border-radius: 8px;
+    margin-top: 1.5rem;
+  }
+  
+  .exam-option-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+  }
+  
+  .exam-selector-btn {
+    text-align: left;
+    padding: 1rem 1.25rem;
+    background: rgba(255, 255, 255, 0.01);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    color: #94a3b8;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.925rem;
+    transition: all 0.2s ease;
+  }
+  
+  .exam-selector-btn.selected-node {
+    background: rgba(16, 185, 129, 0.08) !important;
+    border-color: #10b981 !important;
+    color: #ffffff !important;
+  }
+  
+  .exam-action-row {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 2.5rem;
+  }
+
+  .exam-fullscreen-viewport-override {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: #0b0e14;
+    z-index: 9999999;
+    display: flex;
+    box-sizing: border-box;
+  }
+  
+  /* LEFT COMPONENT SIDEBAR PROFILE OVERLAY SWAP MAPS */
+  .exam-proctor-profile-sidebar {
+    width: 280px;
+    background: #11141d;
+    border-right: 1px solid rgba(255, 255, 255, 0.06);
+    display: flex;
+    flex-direction: column;
+    padding: 1.75rem;
+    box-sizing: border-box;
+  }
+  
+  .proctor-identity-badge {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    padding: 1rem;
+    border-radius: 6px;
+    margin-bottom: 2rem;
+  }
+  
+  .proctor-identity-badge h4 {
+    margin: 0 0 0.75rem 0;
+    font-size: 0.75rem;
+    color: #ef4444;
+    letter-spacing: 0.08em;
+  }
+  
+  .identity-row {
+    font-size: 0.825rem;
+    color: #94a3b8;
+    margin-bottom: 0.35rem;
+  }
+  
+  .identity-row span {
+    color: #fff;
+    font-weight: 600;
+  }
+  
+  .identity-email-text {
+    display: block;
+    font-size: 0.75rem;
+    word-break: break-all;
+    color: #6b7280 !important;
+  }
+  
+  /* SELECTION DRAWERS BUBBLE MATRIX PARAMS */
+  .exam-navigation-matrix-box h5 {
+    color: #fff;
+    margin: 0 0 1rem 0;
+    font-size: 0.85rem;
+  }
+  
+  .matrix-numbers-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.5rem;
+  }
+  
+  .matrix-number-bubble {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: 1px solid transparent;
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+  }
+  
+  /* SYSTEM COLOR VARIANT SELECTION METRICS RULES */
+  .bubble-not-visited { background-color: #242b35; color: #6b7280; } /* 5: Unvisited (Charcoal Grey) */
+  .bubble-visited-red { background-color: rgba(239, 68, 68, 0.15); border-color: #ef4444; color: #ef4444; } /* 6: Skipped (Crimson) */
+  .bubble-review-yellow { background-color: rgba(245, 158, 11, 0.2); border-color: #f59e0b; color: #f59e0b; } /* 3: Flagged (Amber Yellow) */
+  .bubble-saved-green { background-color: #10b981; color: #fff; } /* 4: Answered (Emerald Green) */
+  
+  /* Find this selector around line 55 of SkillsAssessment.css and change it to this: */
+.active-bubble-focus {
+  transform: scale(1.08);
+  border: 2px solid #ffffff !important; 
+}
+  
+  .sidebar-legend-mapping {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    color: #94a3b8;
+  }
+  
+  .legend-item { display: flex; align-items: center; gap: 0.5rem; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+  
+  /* MAIN DISPLAY WINDOW FRAMES */
+  .exam-workspace-center-body {
+    flex: 1;
+    padding: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    overflow-y: auto;
+  }
+  
+  .exam-body-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    padding-bottom: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  
+  .exam-body-header-row h2 { color: #fff; margin: 0; }
+  .security-tag-armed { font-size: 0.8rem; color: #6b7280; margin: 0.25rem 0 0 0; }
+  
+  .countdown-timer-hud {
+    background: #11141d;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    text-align: right;
+    min-width: 140px;
+  }
+  
+  .timer-label { display: block; font-size: 0.65rem; color: #6b7280; font-weight: 700; letter-spacing: 0.05em; }
+  .timer-clock { font-size: 1.35rem; font-weight: 800; color: #fff; font-family: monospace; }
+  .timer-alert-pulse { border-color: #ef4444; background: rgba(239, 68, 68, 0.05); }
+  .timer-alert-pulse .timer-clock { color: #ef4444; }
+  
+  /* LAYOUT QUESTIONS AND CONTROLS SELECTION STYLES */
+  .exam-workspace-card-layout {
+    background: #11141d;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 8px;
+    padding: 2.5rem;
+  }
+  
+  .question-text-title-box h3 { color: #6b7280; margin: 0 0 0.5rem 0; font-size: 0.95rem; text-transform: uppercase; }
+  .question-core-prompt { color: #fff; font-size: 1.2rem; font-weight: 600; line-height: 1.5; margin: 0; }
+  
+  .options-selection-column-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin: 2.5rem 0;
+  }
+  
+  .option-label-wrapper-box {
+    background: rgba(255, 255, 255, 0.01);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 6px;
+    padding: 1.15rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    cursor: pointer;
+    color: #94a3b8;
+    transition: all 0.2s ease;
+  }
+  
+  .option-label-wrapper-box:hover { background: rgba(255, 255, 255, 0.02); color: #fff; }
+  .option-checked-active { border-color: #10b981; background: rgba(16, 185, 129, 0.04); color: #fff; }
+  .option-radio-input { accent-color: #10b981; transform: scale(1.15); }
+  .option-prefix { font-weight: 700; }
+  
+  .exam-control-navigation-action-bar {
+    display: flex;
+    justify-content: space-between;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    padding-top: 1.75rem;
+    margin-top: 2rem;
+  }
+  
+  .action-bar-left-cluster, .action-bar-right-cluster { display: flex; gap: 0.75rem; }
+  
+  .exam-action-btn-save { background: #10b981; border: none; color: #fff; font-weight: 700; padding: 0.65rem 1.25rem; border-radius: 4px; cursor: pointer; }
+  .exam-action-btn-secondary { background: none; border: 1px solid rgba(255,255,255,0.12); color: #94a3b8; font-weight: 600; padding: 0.65rem 1.25rem; border-radius: 4px; cursor: pointer; }
+  .active-marked-btn { background: rgba(245, 158, 11, 0.1); border-color: #f59e0b; color: #f59e0b; }
+  .exam-nav-arrow-btn { background: #242b35; border: none; color: #fff; padding: 0.65rem 1.25rem; border-radius: 4px; cursor: pointer; }
+  .exam-action-btn-submit-final { background: #ef4444; border: none; color: #fff; font-weight: 700; padding: 0.65rem 1.5rem; border-radius: 4px; cursor: pointer; }
