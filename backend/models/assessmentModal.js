@@ -20,18 +20,40 @@ const Assessment = {
 
     // Restricts concurrent test initialization and loads proctored questions matching the skill name
     getQuestionsForSkill: async (studentRoll, skillName) => {
-        // Step A: Update local status token state to 'In-Progress'
+        // 1. Log the initiation status and decrement attempts safely
         await db.query(
-            "UPDATE student_skills SET assessment_status = 'In-Progress' WHERE student_roll = ? AND skill_name = ?",
+            `UPDATE student_skills 
+             SET assessment_status = 'In-Progress', 
+                 attempts_count = GREATEST(CAST(attempts_count AS SIGNED) - 1, 0) 
+             WHERE student_roll = ? AND skill_name = ?`,
             [studentRoll, skillName]
         );
-
-        // Step B: Fetch random evaluation metrics items from the question pool bank
+    
+        // 2. FETCH QUESTIONS ARRAY MATCHING THE SECTOR TARGET
         const [questions] = await db.query(
-            'SELECT id, question_text, option_a, option_b, option_c, option_d FROM assessment_questions WHERE skill_name = ? ORDER BY RAND() LIMIT 10',
+            `SELECT id, question_text, option_a, option_b, option_c, option_d 
+             FROM assessment_questions 
+             WHERE LOWER(TRIM(skill_name)) = LOWER(TRIM(?)) 
+             ORDER BY RAND() LIMIT 10`,
             [skillName]
         );
-        return questions;
+    
+        // 3. DYNAMIC TIME RESOLUTION LOOKUP FROM THE DATABASE
+        // If you have a separate skill meta table or use a fallback value column:
+        const [meta] = await db.query(
+            `SELECT duration_minutes FROM dynamic_skills_inventory 
+             WHERE LOWER(TRIM(skill_name)) = LOWER(TRIM(?)) LIMIT 1`,
+            [skillName]
+        );
+    
+        // Dynamic Fallback Guard Rule: Use value from DB if found, otherwise default to 30
+        const dynamicDuration = meta.length > 0 ? parseInt(meta[0].duration_minutes, 10) : 30;
+    
+        // Return an unified data bundle object back to your router controller
+        return {
+            questions: questions,
+            durationMinutes: dynamicDuration
+        };
     },
 
     // Fetches the master server answer key directly to cross-verify client choices safely
@@ -44,11 +66,43 @@ const Assessment = {
     },
 
     // Writes the verified grades or updates the terminal failure status directly to the record matrix row
-    updateAssessmentResult: async (studentRoll, skillName, rating, status) => {
-        const [result] = await db.query(
-            'UPDATE student_skills SET rating = ?, assessment_status = ? WHERE student_roll = ? AND skill_name = ?',
-            [rating, status, studentRoll, skillName]
-        );
+    updateAssessmentResult: async (studentRoll, skillName, rating, status, passedClearance) => {
+        // 1. Force dynamic values to solid defaults in Javascript memory scope
+        const certificateUnlockedFlag = passedClearance ? 1 : 0;
+        
+        // Explicitly figure out numbers and strings right here before hitting SQL
+        const isMalpractice = status === 'Malpractice' || (rating === 0 && status === 'Malpractice');
+        
+        const finalStatus = isMalpractice ? 'Malpractice' : status;
+        
+        // Explicitly override attempt count right here in the JS scope variables!
+        // If it's a malpractice lockout, attempts go to 0. Otherwise, we don't update it (leave it out of SET, or read current)
+        console.log(`[PROCTOR ENGINE DB] Committing to table. Roll: ${studentRoll}, Skill: ${skillName}, Status: ${finalStatus}`);
+    
+        let query = '';
+        let queryParams = [];
+    
+        if (isMalpractice) {
+            // Strict explicit update path for cheating lockouts
+            query = `UPDATE student_skills 
+                     SET rating = ?, 
+                         assessment_status = ?, 
+                         certificate_unlocked = ?,
+                         attempts_count = 0
+                     WHERE student_roll = ? AND skill_name = ?`;
+            queryParams = [0, 'Malpractice', 0, String(studentRoll), String(skillName)];
+        } else {
+            // Standard baseline update path for genuine test runs
+            query = `UPDATE student_skills 
+                     SET rating = ?, 
+                         assessment_status = ?, 
+                         certificate_unlocked = ?
+                     WHERE student_roll = ? AND skill_name = ?`;
+            queryParams = [Number(rating), String(finalStatus), certificateUnlockedFlag, String(studentRoll), String(skillName)];
+        }
+    
+        // Execute the cleanly split query bundle parameter array
+        const [result] = await db.query(query, queryParams);
         return result;
     }
 };

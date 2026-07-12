@@ -4,14 +4,15 @@ const express = require("express");
 const router = express.Router();
 
 const studentController = require("../controllers/studentController");
+const driveController = require("../controllers/driveController");
 const { verifyToken, verifyRole } = require("../middleware/authMiddleware");
 
 router.get(
-    "/departments-list",
-    verifyToken,
-    verifyRole("student"),
-    studentController.getDepartmentsList
-  );
+  "/departments-list",
+  verifyToken,
+  verifyRole("student"),
+  studentController.getDepartmentsList
+);
 
 // Test Route
 router.get("/test", verifyToken, verifyRole("student"), studentController.test);
@@ -91,5 +92,11 @@ router.get(
   studentController.getDashboardMetrics // We will write this controller method next
 );
 
+router.get(
+  "/hiring-drives",
+  verifyToken,
+  verifyRole("student"),
+  driveController.getUpcomingHiringDrives
+);
 
 module.exports = router;
