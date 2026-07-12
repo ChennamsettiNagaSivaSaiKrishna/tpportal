@@ -68,12 +68,7 @@
   --text-sub: #64748b;
   --tab-bg: #f1f5f9;
   --tab-active: #ffffff;
-  --shadow-card: rgba(
-    15,
-    23,
-    42,
-    0.08
-  ); /* Sophisticated lift shadow for crisp light cards */
+  --shadow-card: rgba(15, 23, 42, 0.08); /* Sophisticated lift shadow for crisp light cards */
 }
 
 /* ==========================================================================
@@ -196,78 +191,7 @@
   color: var(--accent-color) !important;
 }
 
-/* ==========================================================================
-     CARDS CONTAINER MATRIX & DYNAMIC HOVER SHIFTS
-     ========================================================================== */
-.cards-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1rem;
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
-  box-sizing: border-box;
-}
-
-.v0-selection-card {
-  background-color: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  padding: 1.5rem;
-  cursor: pointer;
-  transition: border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-    transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-    box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.v0-icon-container {
-  width: 42px;
-  height: 42px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* --- THEME-SPECIFIC HOVER PARADIGMS --- */
-
-/* 1. DARK MODE HOVER: High-Tactile Edge Neon Outlining Glow */
-.theme-dark .v0-selection-card:hover {
-  border-color: var(--accent-color);
-  transform: translateY(-2px);
-  box-shadow: 0 10px 25px -10px var(--accent-glow);
-}
-
-.theme-dark .v0-selection-card:hover .v0-icon-container {
-  box-shadow: 0 0 16px 2px var(--accent-glow-local);
-  border-color: var(--accent-glow-local) !important;
-  background-color: transparent !important;
-}
-
-/* 2. LIGHT MODE HOVER: Sophisticated Shadow Elevation & Solid Minimalist Border Shift */
-.theme-light .v0-selection-card:hover {
-  border-color: var(--accent-color);
-  transform: translateY(
-    -4px
-  ); /* Slightly increased lift for better dimension perception */
-  box-shadow: 0 20px 25px -5px var(--shadow-card),
-    0 10px 10px -5px rgba(0, 0, 0, 0.04);
-}
-
-.theme-light .v0-selection-card:hover .v0-icon-container {
-  border-color: var(--accent-color) !important;
-  background-color: var(
-    --bg-primary
-  ) !important; /* Elegant inset background depth toggle */
-  transform: scale(1.05);
-}
-
-/* Generic Action Ribbon Rules */
+/* Action Ribbon Rules */
 .card-action-footer {
   margin-top: 2rem;
   font-weight: 600;
@@ -278,10 +202,6 @@
   border-top: 1px solid var(--border-color);
   padding-top: 0.75rem;
   transition: color 0.2s ease, transform 0.2s ease;
-}
-
-.v0-selection-card:hover .card-action-footer {
-  color: var(--accent-color) !important;
 }
 
 /* ==========================================================================
@@ -326,8 +246,7 @@
   padding: 2.5rem 2rem;
   box-sizing: border-box;
   box-shadow: 0 20px 25px -5px var(--shadow-card);
-  transition: background-color 0.2s ease, border-color 0.2s ease,
-    box-shadow 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .auth-header {
@@ -428,44 +347,21 @@
   font-size: 0.875rem;
   cursor: pointer;
   position: relative;
-
-  /* 
-     REMEDY ARCHITECTURE: Use a centered dual-layer background gradient map.
-     Layer 1: The dynamic theme token color, starting centered at 0% width.
-     Layer 2: The base text-title block color serving as the base rest frame canvas.
-  */
-  background-image: linear-gradient(var(--accent-color), var(--accent-color)),
-    linear-gradient(var(--text-title), var(--text-title));
-
-  /* Anchors the progress calculation layers exactly to the center line */
+  background-image: linear-gradient(var(--accent-color), var(--accent-color)), linear-gradient(var(--text-title), var(--text-title));
   background-position: center center, center center;
   background-repeat: no-repeat;
-
-  /* Scale width of the accent track layer to 0% initially, and the rest canvas to 100% */
   background-size: 0% 100%, 100% 100%;
-
-  /* Default text typography variables mapping standard system contrast states */
   color: var(--bg-primary);
-
-  /* Physical constraint anchor prevents edge-stuttering loops completely */
   transform: translateY(0);
-
-  /* Balanced hardware-accelerated cubic layout transition curve curves */
-  transition: background-size 0.35s cubic-bezier(0.25, 1, 0.5, 1),
-    color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-    box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-size 0.35s cubic-bezier(0.25, 1, 0.5, 1), color 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* --- SYSTEM HOVER INTERACTIVE ACTIONS --- */
 .submit-btn:hover:not(:disabled) {
-  color: #ffffff !important; /* Retains crisp visibility over bright or neon palettes */
+  color: #ffffff !important;
   box-shadow: 0 4px 14px var(--accent-glow);
-
-  /* Smoothly scales the accent layer from the center out to cover 100% width */
   background-size: 100% 100%, 100% 100%;
 }
 
-/* Micro physical indentation press tactile response stays inside the active safety zone */
 .submit-btn:active:not(:disabled) {
   transform: scale(0.98);
   transition: transform 0.1s ease;
@@ -524,17 +420,15 @@
   color: var(--text-title);
 }
 
-/* Base structural layout handling the active high-tactile theme highlight indicator */
 .auth-tab-btn.active-auth-tab {
   color: var(--accent-color);
   font-weight: 600;
 }
 
-/* The dynamic theme indicator bottom border slider line */
 .auth-tab-btn.active-auth-tab::after {
   content: "";
   position: absolute;
-  bottom: -1px; /* Overlays perfectly on the container border line */
+  bottom: -1px;
   left: 0;
   width: 100%;
   height: 2px;
@@ -543,7 +437,6 @@
   transition: all 0.2s ease;
 }
 
-/* Smooth layout optimization for handling dynamic grid entry fields */
 .form-row-split {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -620,7 +513,6 @@
   text-transform: uppercase;
 }
 
-/* Operational validation feedback states */
 .field-validation-msg {
   font-size: 0.75rem;
   margin-top: 0.25rem;
@@ -640,22 +532,18 @@
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
 }
+
 .glass-auth-card {
   width: 100%;
   border-radius: 16px;
   padding: 2.5rem 2.25rem;
   box-sizing: border-box;
-
-  /* Glassmorphism Structural Foundations */
   background: rgba(24, 24, 27, 0.8);
   border: 1px solid rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-
-  /* Deep structural drop shadow instead of ambient glows */
   box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.6);
-  transition: background-color 0.3s ease, border-color 0.25s ease,
-    transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 0.3s ease, border-color 0.25s ease, transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .theme-light .glass-auth-card {
@@ -664,13 +552,11 @@
   box-shadow: 0 30px 60px -15px rgba(15, 23, 42, 0.08);
 }
 
-/* --- CRISP ACCENT RING HOVER TRANSITION --- */
 .glass-auth-card:hover {
   border-color: var(--accent-color);
-  transform: scale(1.01); /* Micro lift scale for structural intent feedback */
+  transform: scale(1.01);
 }
 
-/* Ensure flexible scaling boundaries down onto mobile phone devices */
 @media (max-width: 580px) {
   .form-row-double {
     grid-template-columns: 1fr;
@@ -678,219 +564,204 @@
   }
 }
 
-
 /* ==========================================================================
    PRODUCTION WORKSPACE SIDEBAR & DASHBOARD PANELS
    ========================================================================== */
-   .dashboard-wrapper {
-    display: flex;
-    min-height: 100vh;
-    background-color: var(--bg-primary);
-    color: var(--text-main);
-    font-family: 'Inter', system-ui, sans-serif;
-  }
-  
-  .workspace-sidebar {
-    width: 260px;
-    background-color: var(--bg-card);
-    border-right: 1px solid var(--border-color);
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    padding: 1.5rem 1rem;
-    box-sizing: border-box;
-    position: fixed;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    z-index: 100;
-    transition: background-color 0.2s, border-color 0.2s;
-  }
-  
-  .sidebar-main-nav {
-    display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
-  }
-  
-  .sidebar-brand {
-    font-weight: 700;
-    font-size: 0.95rem;
-    letter-spacing: -0.025em;
-    color: var(--text-title);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 2rem;
-    padding: 0 0.5rem;
-  }
-  
-  .sidebar-link {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.65rem 0.75rem;
-    border-radius: 6px;
-    color: var(--text-sub);
-    font-size: 0.875rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-  
-  .sidebar-link:hover, .sidebar-link.active-link {
-    background-color: var(--tab-active);
-    color: var(--accent-color);
-  }
-  
-  /* Bottom Profile Element Container */
-  .sidebar-profile-footer {
-    border-top: 1px solid var(--border-color);
-    padding-top: 1rem;
-    margin-top: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    overflow: hidden;
-  }
-  
-  .profile-avatar {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background-color: var(--accent-color);
-    color: #ffffff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    font-size: 0.9rem;
-    flex-shrink: 0;
-    box-shadow: 0 0 10px var(--accent-glow);
-  }
-  
-  .profile-info-block {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-  }
-  
-  .profile-meta-name {
-    font-size: 0.825rem;
-    font-weight: 600;
-    color: var(--text-title);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  
-  .profile-meta-email {
-    font-size: 0.75rem;
-    color: var(--text-sub);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  
-  /* Workspace Frame Body Containers */
-  .workspace-content-frame {
-    flex: 1;
-    margin-left: 260px; /* Pushes content clear of sidebar */
-    padding: 2.5rem 3rem;
-    box-sizing: border-box;
-    min-width: 0;
-  }
-  
-  .metric-cards-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 1.25rem;
-    margin-top: 2rem;
-  }
-  
-  .metric-panel-card {
-    background-color: var(--bg-card);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 1.5rem;
-    transition: all 0.2s ease;
-  }
-  
-  .metric-panel-card:hover {
-    border-color: var(--accent-color);
-  }
-  
-  /* ==========================================================================
+.dashboard-wrapper {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--bg-primary);
+  color: var(--text-main);
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.workspace-sidebar {
+  width: 260px;
+  background-color: var(--bg-card);
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 1.5rem 1rem;
+  box-sizing: border-box;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 100;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.sidebar-main-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.sidebar-brand {
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: -0.025em;
+  color: var(--text-title);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  padding: 0 0.5rem;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 6px;
+  color: var(--text-sub);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sidebar-link:hover, .sidebar-link.active-link {
+  background-color: var(--tab-active);
+  color: var(--accent-color);
+}
+
+.sidebar-profile-footer {
+  border-top: 1px solid var(--border-color);
+  padding-top: 1rem;
+  margin-top: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  overflow: hidden;
+}
+
+.profile-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: var(--accent-color);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+  box-shadow: 0 0 10px var(--accent-glow);
+}
+
+.profile-info-block {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.profile-meta-name {
+  font-size: 0.825rem;
+  font-weight: 600;
+  color: var(--text-title);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profile-meta-email {
+  font-size: 0.75rem;
+  color: var(--text-sub);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.workspace-content-frame {
+  flex: 1;
+  margin-left: 260px;
+  padding: 2.5rem 3rem;
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+.metric-cards-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.25rem;
+  margin-top: 2rem;
+}
+
+.metric-panel-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: all 0.2s ease;
+}
+
+.metric-panel-card:hover {
+  border-color: var(--accent-color);
+}
+
+/* ==========================================================================
      FIRST VISIT SYSTEM WIZARD OVERLAY MODAL
      ========================================================================== */
-  .force-wizard-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(9, 9, 11, 0.85);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    z-index: 99999;
-    display: flex;
-    align-items: center;
-    justifyContent: center;
+.force-wizard-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(9, 9, 11, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+@media (max-width: 768px) {
+  .dashboard-wrapper {
+    flex-direction: column;
+  }
+  .workspace-sidebar {
+    width: 100%;
+    height: auto;
+    position: relative;
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
     padding: 1rem;
   }
-  
-  /* Responsive Structural adjustments down to standard mobile tablet screens */
-  @media (max-width: 768px) {
-    .dashboard-wrapper {
-      flex-direction: column;
-    }
-    .workspace-sidebar {
-      width: 100%;
-      height: auto;
-      position: relative;
-      border-right: none;
-      border-bottom: 1px solid var(--border-color);
-      padding: 1rem;
-    }
-    .sidebar-brand {
-      margin-bottom: 1rem;
-    }
-    .sidebar-main-nav {
-      flex-direction: row;
-      overflow-x: auto;
-      padding-bottom: 0.5rem;
-    }
-    .workspace-content-frame {
-      margin-left: 0;
-      padding: 1.5rem;
-    }
+  .sidebar-brand {
+    margin-bottom: 1rem;
   }
+  .sidebar-main-nav {
+    flex-direction: row;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+  }
+  .workspace-content-frame {
+    margin-left: 0;
+    padding: 1.5rem;
+  }
+}
 
-  /* =========================================================================
+/* =========================================================================
    UNIVERSAL RESUME PRINT ENGINE STYLES
    ========================================================================= */
 @media print {
-  /* Hide the dashboard layout wrappers entirely */
-  .workspace-sidebar, 
-  .submit-btn, 
-  .form-group, 
-  aside,
-  h1,
-  p {
+  .workspace-sidebar, .submit-btn, .form-group, aside, h1, p {
     display: none !important;
   }
-
-  /* Force the printable workspace to expand to maximum dimensions */
-  .workspace-content-frame, 
-  body, 
-  html {
+  .workspace-content-frame, body, html {
     background: #ffffff !important;
     color: #000000 !important;
     padding: 0 !important;
     margin: 0 !important;
     width: 100% !important;
   }
-
   #printable-cv-frame {
     border: none !important;
     padding: 0 !important;
@@ -902,434 +773,18 @@
 }
 
 /* =========================================================================
-   INDUSTRY STANDARD LANDING & MATRIX NAV ARCHITECTURE
+   INDUSTRY STANDARD LANDING & MATRIX NAV ARCHITECTURE (THEME COMPLIANT)
    ========================================================================= */
-
-   .landing-layout-wrapper {
-    background-color: #0b0f19;
-    color: #f3f4f6;
-    min-height: 100vh;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    overflow-x: hidden;
-  }
-  
-  /* Header Navbar Styling */
-  .landing-navigation-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.75rem 4%;
-    background-color: #121620; /* Deep industry slate profile */
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-  }
-  
-  .nav-brand-container {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-  }
-  
-  .nav-logo-marker {
-    width: 10px;
-    height: 10px;
-    background-color: #ef4444; /* Striking dynamic highlight token */
-    border-radius: 50%;
-  }
-  
-  .nav-brand-title {
-    font-weight: 700;
-    font-size: 0.85rem;
-    letter-spacing: 0.08em;
-    color: #ffffff;
-  }
-  
-  /* Navigation Groups Alignment Wrapper */
-  .nav-matrix-links {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-  }
-  
-  .nav-public-group,
-  .nav-roles-group {
-    display: flex;
-    align-items: center;
-    gap: 1.25rem;
-  }
-  
-  /* Public Informational Links Styling */
-  .nav-link-item {
-    color: #94a3b8;
-    text-decoration: none;
-    font-size: 0.875rem;
-    font-weight: 500;
-    transition: color 0.2s ease;
-  }
-  
-  .nav-link-item:hover {
-    color: #ffffff;
-  }
-  
-  .active-tab-link {
-    color: #38bdf8; /* Clean context tracking shade */
-  }
-  
-  /* Middle Divider Partition Element */
-  .nav-divider-line {
-    width: 1px;
-    height: 20px;
-    background-color: rgba(255, 255, 255, 0.15);
-  }
-  
-  /* Secured RBAC Gateway Buttons */
-  .nav-role-btn {
-    background: none;
-    border: none;
-    color: #94a3b8;
-    font-size: 0.875rem;
-    font-weight: 500;
-    padding: 0.4rem 1rem;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-  
-  .nav-role-btn:hover {
-    color: #ffffff;
-  }
-  
-  /* Capsule background box with highlighted text color */
-  .active-role-highlight {
-    background-color: #1e293b; /* Dark background capsule container tint */
-    color: #ef4444 !important; /* Highlighted text state tracking symbol */
-    font-weight: 600;
-  }
-  
-  /* Hero Section Styling */
-  .landing-hero-viewport {
-    position: relative;
-    padding: 8rem 5% 6rem 5%;
-    background: linear-gradient(135deg, #0d1527 0%, #070a12 100%);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-  }
-  
-  .hero-content-workspace {
-    max-width: 800px;
-    position: relative;
-    z-index: 10;
-  }
-  
-  .hero-tag-badge {
-    font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    color: #10b981;
-    background-color: rgba(16, 185, 129, 0.08);
-    padding: 0.35rem 0.75rem;
-    border-radius: 20px;
-    text-transform: uppercase;
-  }
-  
-  .hero-main-title {
-    font-size: 3.25rem;
-    font-weight: 800;
-    line-height: 1.15;
-    letter-spacing: -0.04em;
-    margin-top: 1.5rem;
-    margin-bottom: 1.5rem;
-    color: #ffffff;
-  }
-  
-  .highlight-text-stream {
-    background: linear-gradient(to right, #ffffff, #10b981);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-  
-  .hero-description-paragraph {
-    color: #9ca3af;
-    font-size: 1.1rem;
-    line-height: 1.6;
-    margin-bottom: 2.5rem;
-    max-width: 650px;
-  }
-  
-  .hero-action-row {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-  }
-  
-  .hero-primary-action-btn {
-    background-color: #10b981;
-    color: #ffffff;
-    font-weight: 600;
-    border: none;
-    padding: 0.85rem 2rem;
-    font-size: 0.95rem;
-    border-radius: 6px;
-    cursor: pointer;
-    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.2);
-  }
-  
-  .hero-secondary-anchor {
-    color: #9ca3af;
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 0.95rem;
-    transition: color 0.2s;
-  }
-  
-  .hero-secondary-anchor:hover {
-    color: #ffffff;
-  }
-  
-  /* Placements Assistance Section */
-  .landing-metrics-container {
-    padding: 6rem 5%;
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-  
-  .section-header-block {
-    text-align: center;
-    margin-bottom: 4rem;
-  }
-  
-  .section-pre-title {
-    color: #10b981;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-  }
-  
-  .section-main-title {
-    font-size: 2rem;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-    margin-top: 0.5rem;
-    color: #ffffff;
-  }
-  
-  .section-subtitle-paragraph {
-    color: #9ca3af;
-    max-width: 600px;
-    margin: 0.5rem auto 0 auto;
-    font-size: 0.95rem;
-    line-height: 1.5;
-  }
-  
-  .landing-metrics-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 4rem;
-  }
-  
-  .metric-analytics-card {
-    background-color: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    padding: 2rem 1.5rem;
-    border-radius: 8px;
-    text-align: center;
-  }
-  
-  .metric-counter-value {
-    font-size: 2.5rem;
-    font-weight: 800;
-    color: #ffffff;
-    letter-spacing: -0.04em;
-  }
-  
-  .metric-counter-label {
-    font-weight: 600;
-    font-size: 0.95rem;
-    margin-top: 0.25rem;
-    color: #10b981;
-  }
-  
-  .metric-counter-sub {
-    font-size: 0.75rem;
-    color: #6b7280;
-    margin-top: 0.15rem;
-  }
-  
-  .assistance-features-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 1.5rem;
-  }
-  
-  .feature-profile-card {
-    background: linear-gradient(to bottom right, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    padding: 2rem;
-    border-radius: 8px;
-  }
-  
-  .feature-icon-box {
-    font-size: 1.5rem;
-    margin-bottom: 1rem;
-  }
-  
-  .feature-profile-card h4 {
-    margin: 0 0 0.5rem 0;
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: #ffffff;
-  }
-  
-  .feature-profile-card p {
-    margin: 0;
-    font-size: 0.875rem;
-    color: #9ca3af;
-    line-height: 1.6;
-  }
-  
-  /* Recruiter Marquee Animation Strip */
-  .corporate-ticker-strip {
-    background-color: #070a12;
-    padding: 1.5rem 0;
-    border-top: 1px solid rgba(255, 255, 255, 0.04);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-    overflow: hidden;
-  }
-  
-  .ticker-wrapper-content {
-    display: flex;
-    align-items: center;
-    gap: 2rem;
-    padding: 0 5%;
-  }
-  
-  .ticker-intro-title {
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: #6b7280;
-    white-space: nowrap;
-    letter-spacing: 0.05em;
-  }
-  
-  .ticker-brands-marquee {
-    display: flex;
-    gap: 3rem;
-    animation: marqueeShift 25s linear infinite;
-  }
-  
-  .marquee-brand-item {
-    color: #4b5563;
-    font-weight: 700;
-    font-size: 1rem;
-    white-space: nowrap;
-  }
-  
-  @keyframes marqueeShift {
-    0% { transform: translate3d(0, 0, 0); }
-    100% { transform: translate3d(-50%, 0, 0); }
-  }
-  
-  /* Footer Section */
-  .landing-global-footer {
-    padding: 3rem 5%;
-    text-align: center;
-    background-color: #05070d;
-    font-size: 0.85rem;
-    color: #6b7280;
-    border-top: 1px solid rgba(255, 255, 255, 0.03);
-  }
-  
-  .landing-global-footer p {
-    margin: 0;
-  }
-
-  /* Update these specific selections in your App.css to adapt to the user's theme */
-
-.nav-logo-marker {
-  width: 10px;
-  height: 10px;
-  background-color: var(--accent-color, #ef4444); /* Fallback to red, but dynamically reads theme */
-  border-radius: 50%;
-  box-shadow: 0 0 8px var(--accent-color, #ef4444);
-}
-
-.active-role-highlight {
-  background-color: #1e293b; 
-  color: var(--accent-color, #ef4444) !important; /* Forces the text highlight to match the theme palette */
-  font-weight: 600;
-}
-
-.hero-primary-action-btn {
-  background-color: var(--accent-color, #10b981); /* Dynamic theme primary buttons */
-  color: #ffffff;
-  font-weight: 600;
-  border: none;
-  padding: 0.85rem 2rem;
-  font-size: 0.95rem;
-  border-radius: 6px;
-  cursor: pointer;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
-  transition: transform 0.2s;
-}
-
-.hero-primary-action-btn:hover {
-  transform: translateY(-1px);
-  filter: brightness(1.1);
-}
-
-.highlight-text-stream {
-  background: linear-gradient(to right, #ffffff, var(--accent-color, #10b981));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.metric-counter-label {
-  font-weight: 600;
-  font-size: 0.95rem;
-  margin-top: 0.25rem;
-  color: var(--accent-color, #10b981); /* Dynamic counters text */
-}
-
-/* =========================================================================
-   DYNAMIC THEME COMPLIANT CORE TEXT METRICS
-   ========================================================================= */
-
-   .hero-tag-badge {
-    font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    /* FIXED: Reads user palette accent color dynamically, falls back safely to red if uninitialized */
-    color: var(--accent-color, #ef4444); 
-    background-color: rgba(255, 255, 255, 0.04);
-    padding: 0.35rem 0.75rem;
-    border-radius: 20px;
-    text-transform: uppercase;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-  }
-  
-  .section-pre-title {
-    /* FIXED: Switched from hardcoded green hex value to dynamic theme var */
-    color: var(--accent-color, #ef4444); 
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-  }
-
-  /* =========================================================================
-   CENTRALIZED ARCHITECTURE STYLES FOR THEME PORTAL
-   ========================================================================= */
-
 .landing-layout-wrapper {
-  background-color: #0b0f19;
-  color: #f3f4f6;
+  background-color: var(--bg-primary, #0b0f19);
+  color: var(--text-main, #f3f4f6);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   width: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  overflow-x: hidden;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .landing-navigation-bar {
@@ -1337,67 +792,193 @@
   justify-content: space-between;
   align-items: center;
   padding: 1rem 4%;
-  background-color: #121620;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background-color: var(--bg-card, #121620);
+  border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.05));
   position: sticky;
   top: 0;
   z-index: 1000;
   width: 100%;
   box-sizing: border-box;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .nav-brand-container { display: flex; align-items: center; gap: 0.6rem; cursor: pointer; }
-.nav-brand-title { font-weight: 700; font-size: 0.85rem; letter-spacing: 0.08em; color: #ffffff; text-transform: uppercase; }
+.nav-brand-title { font-weight: 700; font-size: 0.85rem; letter-spacing: 0.08em; color: var(--text-title, #ffffff); text-transform: uppercase; }
 .nav-matrix-links { display: flex; align-items: center; gap: 1.5rem; }
 .nav-public-group, .nav-roles-group { display: flex; align-items: center; gap: 0.25rem; flex-wrap: wrap; }
 
 .nav-link-btn {
-  background: none; border: none; color: #94a3b8; font-size: 0.875rem;
+  background: none; border: none; color: var(--text-sub, #94a3b8); font-size: 0.875rem;
   font-weight: 500; padding: 0.4rem 1rem; cursor: pointer; transition: color 0.2s;
 }
-.nav-link-btn:hover { color: #ffffff; }
-.nav-divider-line { width: 1px; height: 20px; background-color: rgba(255, 255, 255, 0.15); }
+.nav-link-btn:hover { color: var(--text-title, #ffffff); }
+.nav-divider-line { width: 1px; height: 20px; background-color: var(--border-color, rgba(255, 255, 255, 0.15)); }
 
 .nav-role-btn {
-  background: none; border: none; color: #94a3b8; font-size: 0.875rem;
-  font-weight: 500; padding: 0.4rem 1rem; border-radius: 6px; cursor: pointer; transition: all 0.2s ease;
+  background: none;
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+  color: var(--text-sub, #94a3b8);
+  font-size: 0.825rem;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
+  padding: 0.5rem 1.25rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.nav-role-btn:hover {
+  color: var(--text-title, #ffffff);
+  border-color: var(--text-sub, rgba(255, 255, 255, 0.2));
+  background-color: var(--tab-active, rgba(255, 255, 255, 0.02));
+}
+
+.active-role-highlight {
+  background-color: var(--tab-active, #1e293b) !important;
+  border-color: var(--accent-color, #ef4444) !important;
+  color: var(--accent-color, #ef4444) !important;
+  font-weight: 600;
 }
 
 /* Ultrawide Left-Aligned Hero Section */
+/* --- REPLACE THIS SPECIFIC SELECTOR BLOCK --- */
 .landing-hero-viewport { 
-  padding: 8rem 4% 6rem 4%; 
-  background: linear-gradient(135deg, #0d1527 0%, #070a12 100%); 
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04); 
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  
+  /* MINIMUM VIEWPORT HEIGHT CONSTRAINT:
+     100vh forces the container layer to match 100% of the display window.
+     Subtracting 57px (or whatever your header navbar height tracks to) 
+     prevents a layout push, keeping the landing panel perfectly balanced on load.
+  */
+  min-height: calc(100vh - 60px); 
+  
+  /* Adjusted layout padding to focus content elegantly in the vertical center */
+  padding: 4rem 4%; 
+  background: linear-gradient(135deg, var(--bg-primary, #0d1527) 0%, var(--bg-card, #070a12) 100%); 
+  border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.04)); 
+  
   display: grid;
   grid-template-columns: 1.2fr 0.8fr;
-  max-width: 100%;
-  width: 100%;
-  box-sizing: border-box;
+  align-items: center; /* FIXED: Horizontally aligns content blocks inside the height mesh */
   gap: 2rem;
 }
 
+/* --- ADJUST THE TOP OF CONTAINER GAP IN MEDIA QUERIES --- */
+@media (max-width: 1200px) {
+  .landing-hero-viewport { 
+    grid-template-columns: 1fr; 
+    padding-top: 4rem;
+    padding-bottom: 4rem;
+    /* Keeps full container vertical space allocations fluid on smaller screen footprints */
+    min-height: calc(100vh - 60px); 
+  }
+}
+
 .hero-content-workspace { width: 100%; text-align: left; }
-.hero-main-title { font-size: 3.75rem; font-weight: 800; line-height: 1.15; letter-spacing: -0.04em; margin: 1.5rem 0; color: #ffffff; }
-.hero-description-paragraph { color: #9ca3af; font-size: 1.2rem; line-height: 1.6; margin-bottom: 2.5rem; max-width: 750px; }
+.hero-main-title { font-size: 3.75rem; font-weight: 800; line-height: 1.15; letter-spacing: -0.04em; margin: 1.5rem 0; color: var(--text-title, #ffffff); }
+.hero-description-paragraph { color: var(--text-sub, #9ca3af); font-size: 1.2rem; line-height: 1.6; margin-bottom: 2.5rem; max-width: 750px; }
+
+.hero-primary-action-btn {
+  background-color: var(--accent-color, #10b981);
+  color: #ffffff;
+  font-weight: 600;
+  border: none;
+  padding: 0.85rem 2rem;
+  font-size: 0.95rem;
+  border-radius: 6px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px var(--accent-glow);
+  transition: transform 0.2s, filter 0.2s;
+}
+
+.hero-primary-action-btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.1);
+}
+
+.hero-secondary-anchor {
+  color: var(--text-sub, #9ca3af);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: color 0.2s;
+}
+
+.hero-secondary-anchor:hover {
+  color: var(--text-title, #ffffff);
+}
+
+.highlight-text-stream {
+  background: linear-gradient(to right, var(--text-title, #ffffff), var(--accent-color, #10b981));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
 
 /* Metrics Row Section */
 .landing-metrics-container { padding: 6rem 4% 7rem 4%; width: 100%; box-sizing: border-box; max-width: 100%; }
 .metrics-section-heading { text-align: left; margin-bottom: 3.5rem; }
-.metrics-pre-title { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; }
-.metrics-main-title { font-size: 2.25rem; font-weight: 800; color: #ffffff; margin-top: 0.5rem; letter-spacing: -0.02em; }
+
+.metrics-pre-title, .context-matrix-badge {
+  font-size: 0.7rem; 
+  font-weight: 700; 
+  letter-spacing: 0.1em;
+  color: var(--accent-color, #10b981); 
+  background-color: var(--tab-bg, rgba(255, 255, 255, 0.03));
+  padding: 0.35rem 0.85rem; 
+  border-radius: 20px; 
+  text-transform: uppercase; 
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.05));
+  display: inline-block;
+}
+
+.metrics-main-title { font-size: 2.25rem; font-weight: 800; color: var(--text-title, #ffffff); margin-top: 0.5rem; letter-spacing: -0.02em; }
+.metric-counter-label { font-weight: 600; font-size: 0.95rem; margin-top: 0.25rem; color: var(--accent-color, #10b981); }
 
 .landing-metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; width: 100%; }
-.metric-analytics-card { background-color: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); padding: 2.5rem 1.5rem; border-radius: 8px; text-align: left; }
-.metric-counter-value { font-size: 2.75rem; font-weight: 800; color: #ffffff; letter-spacing: -0.03em; }
-.metric-counter-sub { font-size: 0.75rem; color: #6b7280; margin-top: 0.3rem; }
+.metric-analytics-card { background-color: var(--bg-card, rgba(255, 255, 255, 0.02)); border: 1px solid var(--border-color, rgba(255, 255, 255, 0.05)); padding: 2.5rem 1.5rem; border-radius: 8px; text-align: left; }
+.metric-counter-value { font-size: 2.75rem; font-weight: 800; color: var(--text-title, #ffffff); letter-spacing: -0.03em; }
+.metric-counter-sub { font-size: 0.75rem; color: var(--text-sub, #6b7280); margin-top: 0.3rem; }
 
-/* -----------------------------------------------------------------
-   RE-ENGINEERED CORPORATE STRIP: PREVENTS TEXT OVERLAP COMPLIANCE
-   ----------------------------------------------------------------- */
+.assistance-features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.feature-profile-card {
+  background: linear-gradient(to bottom right, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.05));
+  padding: 2rem;
+  border-radius: 8px;
+}
+
+.feature-icon-box {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.feature-profile-card h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-title, #ffffff);
+}
+
+.feature-profile-card p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--text-sub, #9ca3af);
+  line-height: 1.6;
+}
+
+/* Corporate Ticker Animation Strip */
 .corporate-ticker-strip { 
-  background-color: #070a12; 
-  border-top: 1px solid rgba(255, 255, 255, 0.04); 
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04); 
+  background-color: var(--bg-primary, #070a12); 
+  border-top: 1px solid var(--border-color, rgba(255, 255, 255, 0.04)); 
+  border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.04)); 
   width: 100%;
   box-sizing: border-box;
 }
@@ -1410,9 +991,8 @@
   padding-left: 10px;
 }
 
-/* Label Container has a solid background block and stands on top layer */
 .ticker-title-container {
-  background-color: #070a12;
+  background-color: var(--bg-primary, #070a12);
   padding: 10px;
   position: relative;
   z-index: 20;
@@ -1424,11 +1004,10 @@
 .ticker-intro-title { 
   font-size: 0.75rem; 
   font-weight: 800; 
-  color: #6b7280; 
+  color: var(--text-sub, #6b7280); 
   letter-spacing: 0.05em;
 }
 
-/* Sliding Window tracks freely next to or underneath the layout boundary */
 .marquee-track-window {
   overflow: hidden;
   width: 100%;
@@ -1438,7 +1017,7 @@
 }
 
 .ticker-brands-marquee { display: flex; gap: 4rem; animation: marqueeShift 32s linear infinite; }
-.marquee-brand-item { color: #4b5563; font-weight: 700; font-size: 1rem; white-space: nowrap; }
+.marquee-brand-item { color: var(--text-sub, #4b5563); font-weight: 700; font-size: 1rem; white-space: nowrap; }
 
 @keyframes marqueeShift {
   0% { transform: translate3d(0, 0, 0); }
@@ -1446,52 +1025,99 @@
 }
 
 /* Gateway Selection Cards Viewports */
-/* 1. RESTORE CENTERED ALIGNMENT FOR THE GATEWAY SELECTION PAGE */
+/* --- UPDATE THIS BLOCK --- */
 .context-main-panel { 
   flex: 1; 
   display: flex; 
   flex-direction: column; 
-  justify-content: center; 
-  align-items: center; /* FIXED: Centers the layout content block horizontally */
+  justify-content: flex-start; /* FIXED: Prevents vertical centering from creating a massive gap on tall viewports */
+  align-items: center; 
   width: 100%; 
   box-sizing: border-box; 
-  padding: 4rem 0; 
+  padding: 2rem 0 4rem 0; /* FIXED: Reduced top padding from 4rem to 2rem to bring "System Gateway Matrix" closer to the navbar */
 }
 
+/* --- UPDATE THIS BLOCK --- */
 .context-header-block { 
-  text-align: center; /* FIXED: Explicitly ensures the heading elements are centered */
-  padding: 0 1.5rem 3.5rem 1.5rem; 
+  text-align: center; 
+  /* FIXED: Increased bottom padding from 3.5rem to 5rem to push the login/profile cards down elegantly */
+  padding:0 1.5rem 3.5rem 1.5rem;
 }
 
-/* 2. KEEP THE CARDS GRID MAXED AND CENTERED IN THE PANEL viewport */
 .cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 420px)); /* Fixed max bounds for cleaner symmetry */
+  grid-template-columns: repeat(auto-fit, minmax(280px, 420px)); 
   gap: 2rem;
   width: 100%;
-  max-width: 1200px; /* Safety grid viewport constraint bounds */
-  margin: 0 auto; /* Centers the card layout deck internally */
+  max-width: 1200px; 
+  margin: 0 auto; 
   padding: 0 4% 5rem 4%;
   box-sizing: border-box;
-  justify-content: center; /* FIXED: Centers cards if they wrap */
+  justify-content: center; 
 }
 
 .v0-selection-card {
-  background: #11141d; border: 1px solid rgba(255, 255, 255, 0.04); border-radius: 8px; padding: 2.5rem 2rem;
-  display: flex; flex-direction: column; justify-content: space-between; cursor: pointer;
-  transition: border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  background: var(--bg-card, #11141d); 
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.04)); 
+  border-radius: 8px; 
+  padding: 2.5rem 2rem;
+  display: flex; 
+  flex-direction: column; 
+  justify-content: space-between; 
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  transition: border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease, background-color 0.2s ease;
 }
 
-.dynamic-v0-icon-wrapper { display: inline-flex; align-items: center; justify-content: center; padding: 0.5rem; border-radius: 8px; margin-bottom: 1.25rem; background-color: transparent; transition: background-color 0.3s ease, box-shadow 0.3s ease; }
-.v0-selection-card:hover { border-color: rgba(255, 255, 255, 0.12); transform: translateY(-2px); }
-.v0-selection-card:hover .dynamic-v0-icon-wrapper { background-color: rgba(var(--local-rgb-glow), 0.07); box-shadow: 0 0 20px 4px rgba(var(--local-rgb-glow), 0.25); }
+.dynamic-v0-icon-wrapper { 
+  display: inline-flex; 
+  align-items: center; 
+  justify-content: center; 
+  padding: 0.6rem; 
+  border-radius: 6px; 
+  margin-bottom: 1.25rem; 
+  background-color: var(--tab-bg, rgba(255, 255, 255, 0.02)); 
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08)); 
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); 
+}
 
-.v0-card-title { margin: 0 0 0.5rem 0; color: #ffffff; font-size: 1.05rem; font-weight: 600; letter-spacing: -0.01em; }
-.v0-card-desc { margin: 0; font-size: 0.85rem; color: #94a3b8; line-height: 1.45; }
-.card-action-footer { margin-top: 2rem; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 0.35rem; transition: gap 0.2s ease; }
-.v0-selection-card:hover .card-action-footer { gap: 0.6rem; }
+.v0-card-title { margin: 0 0 0.5rem 0; color: var(--text-title, #ffffff); font-size: 1.05rem; font-weight: 600; letter-spacing: -0.01em; }
+.v0-card-desc { margin: 0; font-size: 0.85rem; color: var(--text-sub, #94a3b8); line-height: 1.45; }
 
-.landing-global-footer { padding: 2.5rem 4%; text-align: left; background-color: #05070d; font-size: 0.85rem; color: #6b7280; border-top: 1px solid rgba(255, 255, 255, 0.03); margin-top: auto; }
+.v0-selection-card:hover { 
+  border-color: var(--accent-color); 
+  transform: translateY(-2px); 
+  box-shadow: 0 10px 25px var(--shadow-card, rgba(0, 0, 0, 0.1));
+}
+
+.v0-selection-card:hover .card-action-footer { 
+  gap: 0.6rem; 
+  color: var(--accent-color) !important;
+}
+
+.v0-selection-card:hover .dynamic-v0-icon-wrapper { 
+  background-color: rgba(var(--local-rgb-glow, 16, 185, 129), 0.07); 
+  border-color: rgba(var(--local-rgb-glow, 16, 185, 129), 0.4);
+  box-shadow: 0 0 20px 4px rgba(var(--local-rgb-glow, 16, 185, 129), 0.25); 
+}
+
+.landing-global-footer { 
+  padding: 2.5rem 4%; 
+  text-align: left; 
+  background-color: var(--bg-primary, #05070d); 
+  font-size: 0.85rem; 
+  color: var(--text-sub, #6b7280); 
+  border-top: 1px solid var(--border-color, rgba(255, 255, 255, 0.03)); 
+  margin-top: auto; 
+}
+
+.nav-logo-marker {
+  width: 10px;
+  height: 10px;
+  background-color: var(--accent-color, #ef4444); 
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--accent-color, #ef4444);
+}
 
 /* MEDIA ADAPTIVE BREAKPOINTS DESIGN LOGIC */
 @media (max-width: 1200px) {
@@ -1513,89 +1139,4 @@
   .metric-analytics-card { text-align: center; }
   .metrics-section-heading { text-align: center; }
   .landing-global-footer { text-align: center; }
-}
-
-/* Update or replace these target rules inside your App.css */
-
-.metrics-pre-title {
-  font-size: 0.7rem; 
-  font-weight: 700; 
-  letter-spacing: 0.1em;
-  color: var(--accent-color, #10b981); /* Mapped to the selected color palette */
-  background-color: rgba(255, 255, 255, 0.03);
-  padding: 0.35rem 0.85rem; 
-  border-radius: 20px; /* The identical circle capsule border curve */
-  text-transform: uppercase; 
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  display: inline-block;
-}
-
-.metrics-section-heading {
-  text-align: left; 
-  margin-bottom: 3.5rem;
-}
-
-.context-matrix-badge {
-  font-size: 0.7rem; 
-  font-weight: 700; 
-  letter-spacing: 0.1em;
-  color: var(--accent-color, #10b981); 
-  background-color: rgba(255, 255, 255, 0.03);
-  padding: 0.35rem 0.85rem; 
-  border-radius: 20px; 
-  text-transform: uppercase;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  display: inline-block;
-}
-
-/* =========================================================================
-   UPDATED NAV-ROLES & ICON OUTLINE DESIGN CONFIGURATIONS
-   ========================================================================= */
-
-/* 1. Adds a clean outline and subtle background to the icons by default */
-.dynamic-v0-icon-wrapper {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.6rem;
-  border-radius: 6px; /* Boxy aesthetic matching the overall structure */
-  margin-bottom: 1.25rem;
-  background-color: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.08); /* The subtle default outline */
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-/* Modifies the hover state to transition the outline smoothly into your glowing halo */
-.v0-selection-card:hover .dynamic-v0-icon-wrapper {
-  background-color: rgba(var(--local-rgb-glow), 0.07);
-  border-color: rgba(var(--local-rgb-glow), 0.4); /* Outlines light up with the palette color */
-  box-shadow: 0 0 20px 4px rgba(var(--local-rgb-glow), 0.25);
-}
-
-/* 2. Standardizes a crisp, boxy square layout design for the role URL selectors */
-.nav-role-btn {
-  background: none;
-  border: 1px solid rgba(255, 255, 255, 0.08); /* Boxy container outline frame */
-  color: #94a3b8;
-  font-size: 0.825rem;
-  font-weight: 600;
-  letter-spacing: 0.025em;
-  text-transform: uppercase;
-  padding: 0.5rem 1.25rem;
-  border-radius: 4px; /* Crisp, low-radius boxy corners */
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.nav-role-btn:hover {
-  color: #ffffff;
-  border-color: rgba(255, 255, 255, 0.2);
-  background-color: rgba(255, 255, 255, 0.02);
-}
-
-/* 3. Retains your exact highlighted active role accent states */
-.active-role-highlight {
-  background-color: #1e293b !important;
-  border-color: var(--accent-color, #ef4444) !important; /* Boxy border updates to user palette color */
-  color: var(--accent-color, #ef4444) !important;
 }
