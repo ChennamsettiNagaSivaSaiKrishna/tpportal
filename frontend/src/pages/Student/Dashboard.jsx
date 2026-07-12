@@ -3,6 +3,7 @@ import { useAuth } from "../../hooks/useAuth";
 import API from "../../services/api";
 import SkillManagement from "./SkillManagement/SkillManagement";
 import SkillsAssessment from "./SkillsAssessment/SkillsAssessment";
+import DriveCalendar from "./DriveCalendar/DriveCalendar";
 import "../../App.css";
 import { usePopup } from "../../context/PopupContext";
 
@@ -37,7 +38,7 @@ const StudentDashboard = () => {
 
   // ADD THESE TWO LINES HERE:
   const [isExamActive, setIsExamActive] = useState(false);
-  const [selectedExamSkill, setSelectedActiveSkillName] = useState("");
+  const [selectedActiveSkillName, setSelectedActiveSkillName] = useState("");
 
   // Profile Form State
   const [formData, setFormData] = useState({
@@ -251,6 +252,15 @@ const StudentDashboard = () => {
             onClick={() => isProfileComplete && setActiveTab("skills")}
           >
             Technical Skills
+          </div>
+          <div
+            className={`sidebar-link ${
+              activeTab === "calendar" && isProfileComplete ? "active-link" : ""
+            }`}
+            style={{ opacity: isProfileComplete ? 1 : 0.5 }}
+            onClick={() => isProfileComplete && setActiveTab("calendar")}
+          >
+            DriveCalendar
           </div>
           <div
             className={`sidebar-link ${
@@ -540,10 +550,17 @@ const StudentDashboard = () => {
               <SkillsAssessment
                 studentRoll={profileData.rollNumber}
                 studentEmail={profileData.email}
-                skillName={selectedExamSkill}
+                skillName={selectedActiveSkillName}
                 onAssessmentClose={() => {
+                  // 1. Close out the active workspace interface view layer node
                   setIsExamActive(false);
+
+                  // 2. FIX: Re-run the workspace data fetcher loop to update attempts and status from DB immediately
                   fetchWorkspaceData();
+
+                  console.log(
+                    "[DASHBOARD PROCTOR] State synchronization matrices refreshed."
+                  );
                 }}
               />
             ) : (
@@ -619,7 +636,7 @@ const StudentDashboard = () => {
                                   "1px solid rgba(255,255,255,0.02)",
                               }}
                             >
-                              {/* 1. Skill Context Meta Description Cells */}
+                              {/* 1. Skill Name Cell */}
                               <td
                                 style={{
                                   padding: "0.75rem",
@@ -631,7 +648,7 @@ const StudentDashboard = () => {
                                 {s.skill_name}
                               </td>
 
-                              {/* 2. Audited Progress Rating Index Variable Display */}
+                              {/* 2. Audited Score Cell */}
                               <td
                                 style={{
                                   padding: "0.75rem",
@@ -645,7 +662,8 @@ const StudentDashboard = () => {
                                   : "0%"}
                               </td>
 
-                              {/* 3. Operational Integrity Assessment Verification Status Tokens */}
+                              {/* 3. Dynamic Visual Status Badges */}
+                              {/* 3. Dynamic Visual Status Badges */}
                               <td
                                 style={{
                                   padding: "0.75rem",
@@ -661,22 +679,30 @@ const StudentDashboard = () => {
                                     background:
                                       s.assessment_status === "Verified"
                                         ? "rgba(16,185,129,0.1)"
+                                        : s.assessment_status === "Malpractice"
+                                        ? "rgba(239,68,68,0.15)" // Explicit red overlay tint for infraction tokens
                                         : s.assessment_status === "Failed"
                                         ? "rgba(239,68,68,0.1)"
                                         : "rgba(245,158,11,0.1)",
                                     color:
                                       s.assessment_status === "Verified"
                                         ? "#10b981"
+                                        : s.assessment_status === "Malpractice"
+                                        ? "#ef4444" // Strict high-visibility red
                                         : s.assessment_status === "Failed"
                                         ? "#ef4444"
                                         : "#f59e0b",
+                                    fontWeight:
+                                      s.assessment_status === "Malpractice"
+                                        ? "700"
+                                        : "normal",
                                   }}
                                 >
                                   {s.assessment_status || "Not Initiated"}
                                 </span>
                               </td>
 
-                              {/* 4. THE FIX: CENTRALIZED UNIFIED ACTION CONTROL ACTION CELL */}
+                              {/* 4. FIXED ACTION CELL: Handles Certificate, Malpractice Locks, and Remainder Counts */}
                               <td
                                 style={{
                                   padding: "0.75rem",
@@ -691,7 +717,7 @@ const StudentDashboard = () => {
                                     alignItems: "center",
                                   }}
                                 >
-                                  {/* CONDITION A: Passed Verification -> Score >= 60% and Status is Verified */}
+                                  {/* CONDITION A: Show Certificate Download Link if Verified & Passed */}
                                   {s.assessment_status === "Verified" &&
                                     s.rating >= 60 && (
                                       <button
@@ -715,14 +741,22 @@ const StudentDashboard = () => {
                                       </button>
                                     )}
 
-                                  {/* CONDITION B: Absolute Lockout -> ONLY trigger Contact HOD if they have used up all 3 attempts and haven't passed */}
-                                  {parseInt(s.attempts_count, 10) >= 3 &&
-                                  s.assessment_status !== "Verified" ? (
+                                  {/* CONDITION B: Absolute Lockout -> Handles explicit Malpractice OR when unverified remaining attempts hit 0 */}
+                                  {s.assessment_status === "Malpractice" ||
+                                  (s.attempts_count !== null &&
+                                    s.attempts_count !== undefined &&
+                                    parseInt(s.attempts_count, 10) <= 0) ? (
                                     <button
                                       onClick={() => {
+                                        const isMalpractice =
+                                          s.assessment_status === "Malpractice";
                                         showPopup({
-                                          title: "Evaluation Node Locked",
-                                          message: `Your exam terminal routing for ${s.skill_name} is permanently locked because all 3 baseline tracking attempts have been exhausted. Please contact your HOD or Admin for a re-test clearance token.`,
+                                          title: isMalpractice
+                                            ? "Terminal Security Lockout"
+                                            : "Evaluation Node Locked",
+                                          message: isMalpractice
+                                            ? `Your exam path for ${s.skill_name} is locked due to an intentional proctor malpractice infraction. Please contact your HOD immediately.`
+                                            : `Your exam terminal routing for ${s.skill_name} is permanently locked because all tracking attempts have been exhausted. Please contact your HOD or Admin for a re-test token.`,
                                           confirmText: "Close Metrics View",
                                         });
                                       }}
@@ -742,7 +776,7 @@ const StudentDashboard = () => {
                                       Contact HOD
                                     </button>
                                   ) : (
-                                    /* CONDITION C: Permitted to Test -> If they haven't passed yet and have remaining attempts (even if previous ones failed) */
+                                    /* CONDITION C: Permitted to Test -> Remaining attempts > 0 and status is unverified */
                                     s.assessment_status !== "Verified" && (
                                       <button
                                         onClick={() => {
@@ -773,10 +807,8 @@ const StudentDashboard = () => {
                                           width: "auto",
                                         }}
                                       >
-                                        Take Assessment (
-                                        {3 -
-                                          (parseInt(s.attempts_count, 10) ||
-                                            0)}{" "}
+                                        {/* Pulls remaining integer natively from database payload directly */}
+                                        Take Assessment ({s.attempts_count ?? 3}{" "}
                                         left)
                                       </button>
                                     )
@@ -792,6 +824,13 @@ const StudentDashboard = () => {
                 </div>
               </div>
             )}
+          </div>
+        ) : activeTab === "calendar" ? (
+          <div className="dashboard-section-fade-container" style={{ width: "100%", padding: "0.25rem" }}>
+            <DriveCalendar 
+              studentCgpa={profileData?.cgpa || 0.00} 
+              studentBranch={profileData?.branch || "CSE"} 
+            />
           </div>
         ) : activeTab === "resume" ? (
           /* REQUIREMENT 3: EPHEMERAL INTERACTIVE RESUME BUILDER WORKSPACE Engine */
