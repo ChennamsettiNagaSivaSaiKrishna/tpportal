@@ -37,9 +37,10 @@ export const AuthProvider = ({ children }) => {
   }, [verifySession]);
 
   const login = async (credentials, role) => {
+    debugger;
     const response = await API.post('/auth/login', { ...credentials, role });
     if (response.data.success) {
-      setUser(response.data.user);
+      setUser(response.data);
       setIsAuthenticated(true);
     }
     return response.data;
