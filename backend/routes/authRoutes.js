@@ -8,7 +8,7 @@ const { verifyToken } = require('../middleware/authMiddleware');
 router.get("/test", authController.test);
 
 // RegisterStudent
-router.post("/register/student", authController.register);
+router.post("/register", authController.register);
 
 // Login
 router.post("/login", authController.login);

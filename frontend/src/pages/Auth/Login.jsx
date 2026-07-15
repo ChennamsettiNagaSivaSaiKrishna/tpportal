@@ -113,27 +113,30 @@ const handleSubmit = async (e) => {
       // Argument 2: Role Context String (targetContext extracted from the selection card)
       const data = await login({ email: email.trim(), password }, targetContext);
       
-      if (data && data.success) {
-        // Safe check supporting both 'data.user' or a nested 'data.data' payload structure
-        const activeUser = data.data || data.user||data;
-        debugger;
-        // DYNAMIC WORKSPACE ROUTING MATRIX
-        if (["placement_officer", "placement_coordinator", "placement_head", "training_head"].includes(activeUser.role)) {
-          if (activeUser.is_default_password) {
-            navigate('/placement-team/reset-password');
-          } else {
-            navigate('/placement-team/dashboard');
-          }
-        } else if (activeUser.role === 'student') {
-          navigate('/student/dashboard');
-        } else if (activeUser.role === 'management' || activeUser.role === 'hod') {
-          navigate('/management/dashboard');
-        } else {
-          setError('Access Denied: Unmapped account clearance profile.');
-        }
-      } else {
-        setError(data.message || 'Authentication failed.');
-      }
+if (data && data.success) {
+  const activeUser = data.data || data.user || data;
+
+  switch (activeUser.role) {
+    case "student":
+    case "placement_officer":
+    case "placement_coordinator":
+    case "placement_head":
+    case "training_head":
+    case "hod":
+    case "principal":
+    case "director":
+    case "secretary":
+    case "admin":
+      navigate("/student/dashboard");
+      break;
+
+    default:
+      setError("Access Denied: Invalid role.");
+  }
+
+} else {
+  setError(data.message || "Authentication failed.");
+}
     } else {
       // Registration block remains student-only...
       const res = await API.post('/auth/register/student', {

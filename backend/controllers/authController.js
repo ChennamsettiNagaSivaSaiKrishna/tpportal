@@ -29,14 +29,18 @@ exports.register = async (req, res) => {
         
         // Assuming createUser returns the complete newly initialized database entry row object
         const newUser = await userModel.createUser(email, passwordHash, role);
-
+        const createdUser = await userModel.findByEmail(email);
         // Optional: Generate a token instantly upon successful registration to match standard DX architectures
         const token = jwt.sign(
-            { id: newUser.id || user.id, role: role },
-            process.env.JWT_SECRET,
-            { expiresIn: "1d" }
-        );
-
+    {
+        id: createdUser.id,
+        role: createdUser.role
+    },
+    process.env.JWT_SECRET,
+    {
+        expiresIn: "1d"
+    }
+);
         // Send token as a cookie right away
         res.cookie('token', token, {
             httpOnly: true,
