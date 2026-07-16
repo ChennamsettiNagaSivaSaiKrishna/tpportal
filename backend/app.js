@@ -39,11 +39,21 @@ const announcementRoutes = require("./routes/announcementRoutes");
 const studentPhaseAllocationRoutes = require("./routes/studentPhaseAllocationRoutes");
 const rolePermissionMappingRoutes = require("./routes/rolePermissionMappingRoutes");
 const assessmentRoutes = require('./routes/assesmentRoutes');
+const notificationRoutes = require("./routes/notificationRoutes");
 
 // ==========================
 // Express App
 // ==========================
 const app = express();
+
+
+
+
+
+app.use(
+    "/uploads",
+    express.static(path.join(__dirname, "uploads"))
+);
 
 // ==========================
 // Middleware (UPDATED FOR PRODUCTION STANDARDS)
@@ -118,4 +128,10 @@ app.use("/api/system-permissions", systemPermissionRoutes);
 // Export App
 // ==========================
 app.use("/api/student-phase-allocations", studentPhaseAllocationRoutes);
+
+
+
+app.use("/api/notifications", notificationRoutes);
+
+
 module.exports = app;

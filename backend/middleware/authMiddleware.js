@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-
+const { verifyToken } = require("../middleware/authMiddleware");
 // ==========================================================================
 // HIGH-SECURITY MULTI-SOURCE JWT VERIFIER (COOKIES + HEADERS)
 // ==========================================================================
