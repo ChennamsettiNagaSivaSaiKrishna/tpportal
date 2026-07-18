@@ -12,10 +12,10 @@ export const AuthProvider = ({ children }) => {
   const verifySession = useCallback(async () => {
     try {
       const response = await API.get('/auth/me'); 
-      if (response.data.success) {
-        setUser(response.data.user);
-        setIsAuthenticated(true);
-      }
+     if (response.data.success) {
+  setUser(response.data.user);
+  setIsAuthenticated(true);
+}
     } catch (error) {
       setUser(null);
       setIsAuthenticated(false);

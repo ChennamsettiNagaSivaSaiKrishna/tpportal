@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
+import { AuthContext } from "../../../context/AuthContext";
 import API from "../../../services/api";
 import TeamSidebar from "../TeamSidebar"; 
 import "../../Student/DriveCalendar/DriveCalendar.css"; // Reuses your premium light/dark glass theme configs cleanly
@@ -6,22 +7,31 @@ import "../../Student/DriveCalendar/DriveCalendar.css"; // Reuses your premium l
 const TeamDashboardHome = () => {
   const [metrics, setMetrics] = useState(null);
   const [liveLog, setLiveLog] = useState([]);
-  const roleTitle = localStorage.getItem("userRole");
 
-  useEffect(() => {
-    const fetchAdministrativeMetrics = async () => {
-      try {
-        const res = await API.get("/placement-team/dashboard-summary");
-        if (res.data.success) {
-          setMetrics(res.data.metrics);
-          setLiveLog(res.data.liveLog);
-        }
-      } catch (err) {
-        console.error("Error pulling analytical matrix updates:", err);
+  const { user } = useContext(AuthContext);
+
+  const roleTitle = user?.role || "";
+console.log(user);
+console.log(user?.id);
+console.log(user?.role);
+console.log(user?.email);
+
+useEffect(() => {
+  const fetchDashboardData = async () => {
+    try {
+      const dashboardRes = await API.get("/placement-team/dashboard-summary");
+
+      if (dashboardRes.data.success) {
+        setMetrics(dashboardRes.data.metrics);
+        setLiveLog(dashboardRes.data.liveLog);
       }
-    };
-    fetchAdministrativeMetrics();
-  }, []);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  fetchDashboardData();
+}, []);
 
   return (
     <div className="dashboard-wrapper">
