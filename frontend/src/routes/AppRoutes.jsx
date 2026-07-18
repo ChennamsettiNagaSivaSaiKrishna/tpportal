@@ -15,6 +15,7 @@ const AppRoutes = () => {
       {/* Retained your original routing patterns completely intact */}
       <Route path="/login-select" element={<IndustryLoginSelection />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Login />} />
       <Route path="/student/dashboard" element={<StudentDashboard />} />
 
       {/* Generic redirect handling block */}

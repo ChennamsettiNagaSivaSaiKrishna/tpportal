@@ -9,8 +9,41 @@ import { usePopup } from "../../context/PopupContext";
 
 const StudentDashboard = () => {
   const { logout } = useAuth();
+  const { user } = useAuth();
+  const role = user?.role || "student";
   const resumePrintRef = useRef();
   const { showPopup } = usePopup();
+
+
+  const sidebarMenus = {
+  student: [
+    { key: "metrics", label: "Dashboard" },
+    { key: "placements", label: "Open Placements" },
+    { key: "skills", label: "Technical Skills" },
+    { key: "calendar", label: "Drive Calendar" },
+    { key: "resume", label: "Resume Builder" },
+    { key: "profile", label: "Profile Information" }
+  ],
+
+  placement_officer: [
+    { key: "metrics", label: "Dashboard" },
+    { key: "placements", label: "Companies" },
+    { key: "skills", label: "Drives" },
+    { key: "calendar", label: "Student Verification" },
+    { key: "resume", label: "Results" },
+    { key: "profile", label: "Reports" }
+  ],
+
+  admin: [
+    { key: "metrics", label: "Dashboard" },
+    { key: "placements", label: "Users" },
+    { key: "skills", label: "Departments" },
+    { key: "calendar", label: "Roles" },
+    { key: "resume", label: "Permissions" },
+    { key: "profile", label: "Settings" }
+  ]
+};
+const menus = sidebarMenus[role] || sidebarMenus.student;
 
   // States
   const [activeTab, setActiveTab] = useState("metrics"); // metrics, placements, skills, info, resume
@@ -222,75 +255,33 @@ const StudentDashboard = () => {
     <div className="dashboard-wrapper">
       {/* SIDEBAR NAVIGATION BAR CONTROL */}
       <aside className="workspace-sidebar">
-        <div className="sidebar-main-nav">
-          <div className="sidebar-brand">TP PORTAL</div>
-          <div
-            className={`sidebar-link ${
-              activeTab === "metrics" && isProfileComplete ? "active-link" : ""
-            }`}
-            style={{ opacity: isProfileComplete ? 1 : 0.5 }}
-            onClick={() => isProfileComplete && setActiveTab("metrics")}
-          >
-            Dashboard Home
-          </div>
-          <div
-            className={`sidebar-link ${
-              activeTab === "placements" && isProfileComplete
-                ? "active-link"
-                : ""
-            }`}
-            style={{ opacity: isProfileComplete ? 1 : 0.5 }}
-            onClick={() => isProfileComplete && setActiveTab("placements")}
-          >
-            Open Placements
-          </div>
-          <div
-            className={`sidebar-link ${
-              activeTab === "skills" && isProfileComplete ? "active-link" : ""
-            }`}
-            style={{ opacity: isProfileComplete ? 1 : 0.5 }}
-            onClick={() => isProfileComplete && setActiveTab("skills")}
-          >
-            Technical Skills
-          </div>
-          <div
-            className={`sidebar-link ${
-              activeTab === "calendar" && isProfileComplete ? "active-link" : ""
-            }`}
-            style={{ opacity: isProfileComplete ? 1 : 0.5 }}
-            onClick={() => isProfileComplete && setActiveTab("calendar")}
-          >
-            DriveCalendar
-          </div>
-          <div
-            className={`sidebar-link ${
-              activeTab === "resume" && isProfileComplete ? "active-link" : ""
-            }`}
-            style={{ opacity: isProfileComplete ? 1 : 0.5 }}
-            onClick={() => isProfileComplete && setActiveTab("resume")}
-          >
-            Resume Builder
-          </div>
-          <div
-            className={`sidebar-link ${
-              activeTab === "info" || !isProfileComplete ? "active-link" : ""
-            }`}
-            onClick={() => {
-              setIsResumeConfigured(false);
-              setActiveTab("info");
-            }}
-          >
-            Profile Information {!isProfileComplete && "⚠️"}
-          </div>
-          <div
-            className="sidebar-link"
-            style={{ marginTop: "2rem", color: "#f87171" }}
-            onClick={logout}
-          >
-            Log Out
-          </div>
-        </div>
-      </aside>
+
+<div className="sidebar-main-nav">
+
+<div className="sidebar-brand">
+TP PORTAL
+</div>
+
+{menus.map((menu) => (
+  <div
+    key={menu.key}
+    onClick={() => setActiveTab(menu.key)}
+  >
+    {menu.label}
+  </div>
+))}
+
+<div
+className="sidebar-link"
+style={{color:"red"}}
+onClick={logout}
+>
+Log Out
+</div>
+
+</div>
+
+</aside>
 
       {/* DYNAMIC FRAME ROUTER VIEW CONTAINER */}
       <main
@@ -298,7 +289,7 @@ const StudentDashboard = () => {
         style={{ display: "flex", flexDirection: "column", width: "100%" }}
       >
         {/* REQUIREMENT 2: PROFILE DETAILS UPDATION VIEW POSITIONED EXACTLY IN THE DEAD CENTER */}
-        {!isProfileComplete || activeTab === "info" ? (
+        {role === "student" && (!isProfileComplete || activeTab === "profile") ? (
           <div
             style={{
               display: "flex",
@@ -432,17 +423,31 @@ const StudentDashboard = () => {
         ) : activeTab === "metrics" ? (
           /* VIEW PANEL A: ANALYTICS HOME VIEW WITH RATING PROGRESS BARS */
           <div>
-            <h1 style={{ fontSize: "1.6rem", fontWeight: "800", margin: 0 }}>
-              Student Dashboard Workspace
-            </h1>
-            <p style={{ color: "var(--text-sub)", fontSize: "0.85rem" }}>
-              Stream Branch: {profileData.branch}
-            </p>
+<h1 style={{ fontSize: "1.6rem", fontWeight: "800", margin: 0 }}>
+  {{
+    student: "Student Dashboard",
+    placement_officer: "Placement Officer Dashboard",
+    placement_coordinator: "Placement Coordinator Dashboard",
+    placement_head: "Placement Head Dashboard",
+    hod: "HOD Dashboard",
+    principal: "Principal Dashboard",
+    director: "Director Dashboard",
+    secretary: "Secretary Dashboard",
+    admin: "Administrator Dashboard"
+  }[role]}
+</h1>
+<p style={{ color: "var(--text-sub)", fontSize: "0.85rem" }}>
+  Stream Branch: {profileData.branch}
+</p>
 
             <div
-              className="metric-cards-row"
-              style={{ marginTop: "1.5rem", marginBottom: "2rem" }}
-            >
+  className="metric-cards-row"
+  style={{
+    marginTop: "1.5rem",
+    marginBottom: "2rem"
+  }}
+>
+            
               <div className="metric-panel-card">
                 <span style={{ fontSize: "0.7rem", color: "var(--text-sub)" }}>
                   VERIFICATION AUDIT
@@ -477,6 +482,9 @@ const StudentDashboard = () => {
                 </h3>
               </div>
             </div>
+
+
+            
 
             {/* REQUIREMENT 1: RENDER TECHNICAL SKILLS RATINGS WITH CORE THEME PROGRESS BARS */}
             <div className="metric-panel-card" style={{ marginTop: "1.5rem" }}>
@@ -544,6 +552,7 @@ const StudentDashboard = () => {
             </div>
           </div>
         ) : activeTab === "skills" ? (
+          
           <div style={{ width: "100%" }}>
             {isExamActive ? (
               /* Swaps out Left Navigation Panel elements automatically by mounting the overlay viewport */
@@ -1103,19 +1112,40 @@ const StudentDashboard = () => {
               </div>
             )}
           </div>
-        ) : (
-          <div>
-            <h1 style={{ fontSize: "1.5rem", fontWeight: "800" }}>
-              Hiring Drive Records
-            </h1>
-            <p style={{ color: "var(--text-sub)" }}>
-              Synchronizing available recruitment drives table parameters...
-            </p>
-          </div>
-        )}
+        ) : activeTab === "placements" ? (
+  <div>
+    <h1>{menus.find(m => m.key === "placements")?.label}</h1>
+    <p>Content coming soon...</p>
+  </div>
+
+) : activeTab === "calendar" ? (
+  <div>
+    <h1>{menus.find(m => m.key === "calendar")?.label}</h1>
+    <p>Content coming soon...</p>
+  </div>
+
+) : activeTab === "resume" ? (
+  <div>
+    <h1>{menus.find(m => m.key === "resume")?.label}</h1>
+    <p>Content coming soon...</p>
+  </div>
+
+) : activeTab === "profile" ? (
+  <div>
+    <h1>{menus.find(m => m.key === "profile")?.label}</h1>
+    <p>Content coming soon...</p>
+  </div>
+
+) : (
+  <div>
+    <h1>Dashboard</h1>
+  </div>
+)}
       </main>
     </div>
   );
 };
+
+
 
 export default StudentDashboard;

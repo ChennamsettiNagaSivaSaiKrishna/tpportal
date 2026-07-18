@@ -139,7 +139,7 @@ if (data && data.success) {
 }
     } else {
       // Registration block remains student-only...
-      const res = await API.post('/auth/register/student', {
+      const res = await API.post('/auth/register', {
         email: email.trim(),
         password,
         full_name: fullName.trim(),

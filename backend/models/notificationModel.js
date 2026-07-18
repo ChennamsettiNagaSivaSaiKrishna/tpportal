@@ -1,5 +1,7 @@
 const db = require("../config/db");
 
+
+
 /**
  * Create Notification
  */
@@ -55,25 +57,30 @@ const getNotificationById = async (notificationId) => {
  * Update Notification
  */
 
-const updateNotification = async (notificationId,data)=>{
+const updateNotification = async (
+    notificationId,
+    data
+) => {
 
     const sql = `
         UPDATE notifications
         SET
-            title=?,
-            message=?,
-            category=?,
-            priority=?
-        WHERE notification_id=?
+            title = ?,
+            message = ?,
+            category = ?,
+            priority = ?
+        WHERE notification_id = ?
     `;
 
-    await db.query(sql,[
+    const [result] = await db.query(sql, [
         data.title,
         data.message,
         data.category,
         data.priority,
         notificationId
     ]);
+
+    return result;
 
 };
 
@@ -113,14 +120,81 @@ const updateAttachmentCount = async (
 
 };
 
+/**
+ * Get Sent Notifications
+ */
+const getSentNotifications = async (senderId) => {
 
+    const sql = `
+        SELECT
+            notification_id,
+            title,
+            message,
+            category,
+            priority,
+            attachment_count,
+            status,
+            created_at
+        FROM notifications
+        WHERE sender_id = ?
+        ORDER BY created_at DESC
+    `;
+
+    const [rows] = await db.query(sql, [senderId]);
+
+    return rows;
+
+};
+
+
+/**
+ * Get Notification By Sender
+ */
+const getNotificationBySender = async (notificationId, senderId) => {
+
+    const sql = `
+        SELECT *
+        FROM notifications
+        WHERE notification_id = ?
+          AND sender_id = ?
+        LIMIT 1
+    `;
+
+    const [rows] = await db.query(sql, [
+        notificationId,
+        senderId
+    ]);
+
+    return rows.length ? rows[0] : null;
+
+};
+
+/**
+ * Soft Delete Notification
+ */
+const softDeleteNotification = async (notificationId) => {
+
+    const sql = `
+        UPDATE notifications
+        SET status = 'DELETED'
+        WHERE notification_id = ?
+    `;
+
+    const [result] = await db.query(sql, [notificationId]);
+
+    return result;
+
+};
 
 module.exports = {
     createNotification,
     getNotificationById,
     updateNotification,
     updateAttachmentCount,
-    deleteNotification
+    deleteNotification,
+    getSentNotifications,
+    getNotificationBySender,
+    softDeleteNotification,
 };
 
 

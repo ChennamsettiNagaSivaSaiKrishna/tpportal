@@ -267,6 +267,8 @@ exports.getMyNotifications = async (req, res) => {
 
         const recipientId = req.user.id;
 
+        console.log("Logged in user:", req.user);
+
         const notifications =
             await recipientModel.getMyNotifications(recipientId);
 
@@ -298,6 +300,52 @@ exports.getMyNotifications = async (req, res) => {
 
 };
 
+
+
+
+/**
+ * Search My Notifications
+ */
+exports.searchMyNotifications = async (req, res) => {
+
+    console.log("******** SEARCH API HIT ********");
+
+    try {
+
+        const recipientId = req.user.id;
+
+        const {
+            search = "",
+            category = "",
+            priority = ""
+        } = req.query;
+
+        const notifications = await recipientModel.searchMyNotifications(
+            recipientId,
+            search,
+            category,
+            priority
+        );
+
+        return res.status(200).json({
+            success: true,
+            count: notifications.length,
+            data: notifications
+        });
+
+    } catch (error) {
+
+        console.error(error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to search notifications.",
+            error: error.message
+        });
+
+    }
+
+};
 
 
 
@@ -358,3 +406,5 @@ exports.getNotificationById = async (req, res) => {
     }
 
 };
+
+

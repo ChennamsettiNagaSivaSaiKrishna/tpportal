@@ -1,27 +1,15 @@
-const roleMiddleware = require("../middleware/roleMiddleware");
-
-const {
-    validateCreateNotification
-} = require("../middleware/notificationValidation");
 const express = require("express");
-
 const router = express.Router();
 
 const { verifyToken } = require("../middleware/authMiddleware");
-
 const upload = require("../middleware/uploadMiddleware");
 
 const notificationController = require("../controllers/notificationController");
-
 const notificationRecipientController = require("../controllers/notificationRecipientController");
-
 const notificationAttachmentController = require("../controllers/notificationAttachmentController");
-
 const notificationAdminController = require("../controllers/notificationAdminController");
-
 const notificationAuditController = require("../controllers/notificationAuditController");
-
-
+const userController = require("../controllers/userController");
 
 /* ================= Notification ================= */
 
@@ -32,12 +20,42 @@ router.post(
     notificationController.createNotification
 );
 
+router.get(
+    "/sent",
+    verifyToken,
+    notificationController.getSentNotifications
+);
+
+router.put(
+    "/:notificationId",
+    verifyToken,
+    notificationController.updateNotification
+);
+
+router.delete(
+    "/:notificationId",
+    verifyToken,
+    notificationController.deleteNotification
+);
+
 /* ================= Recipient ================= */
+
+router.get(
+    "/my-notifications",
+    verifyToken,
+    notificationRecipientController.getMyNotifications
+);
 
 router.get(
     "/my",
     verifyToken,
     notificationRecipientController.getMyNotifications
+);
+
+router.get(
+    "/search",
+    verifyToken,
+    notificationRecipientController.searchMyNotifications
 );
 
 router.get(
@@ -57,8 +75,6 @@ router.delete(
     verifyToken,
     notificationRecipientController.deleteNotification
 );
-
-
 
 /* ================= Attachments ================= */
 
@@ -80,16 +96,13 @@ router.delete(
     notificationAttachmentController.deleteAttachment
 );
 
-/* ================= Audit Logs ================= */
+/* ================= Audit ================= */
 
 router.get(
     "/:notificationId/audit",
     verifyToken,
     notificationAuditController.getAuditLogs
 );
-
-
-
 
 /* ================= Admin ================= */
 

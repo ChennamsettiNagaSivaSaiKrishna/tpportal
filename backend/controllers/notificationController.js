@@ -29,6 +29,20 @@ console.log(req.body);
 
         } = req.body;
 
+
+        const allowedPriorities = [
+    "NORMAL",
+    "IMPORTANT",
+    "URGENT"
+];
+
+if (!allowedPriorities.includes(priority)) {
+    return res.status(400).json({
+        success: false,
+        message: "Invalid priority."
+    });
+}
+
         const senderId = req.user.id;
         const senderRole = req.user.role;
 
@@ -116,50 +130,8 @@ console.log(req.body);
 
         /* ---------------- Validate Recipient Permissions ---------------- */
 
-        const allowedRecipients = recipients;
-       
 
-
-
-
-for (const recipient of recipients) {
-
-    // Super Admin -> Everyone
-    if (senderRole === "SUPER_ADMIN") {
-        allowedRecipients.push(recipient);
-        continue;
-    }
-
-    // Placement Officer -> Students only
-    if (
-        senderRole === "PLACEMENT_OFFICER" &&
-        recipient.recipient_type === "ROLE" &&
-        recipient.role === "STUDENT"
-    ) {
-        allowedRecipients.push(recipient);
-        continue;
-    }
-
-    // HOD -> Students of own department
-    if (
-        senderRole === "HOD" &&
-        recipient.recipient_type === "ROLE" &&
-        recipient.role === "STUDENT"
-    ) {
-        allowedRecipients.push(recipient);
-        continue;
-    }
-
-    // Faculty -> Own students only
-    if (
-        senderRole === "FACULTY" &&
-        recipient.recipient_type === "ROLE" &&
-        recipient.role === "STUDENT"
-    ) {
-        allowedRecipients.push(recipient);
-    }
-
-}
+const allowedRecipients = recipients;
 
 if (allowedRecipients.length === 0) {
 
@@ -167,22 +139,27 @@ if (allowedRecipients.length === 0) {
 
     return res.status(403).json({
         success: false,
-        message: "You are not allowed to send notification to selected recipients."
+        message: "No recipients selected."
     });
 
 }
 
 /* ---------------- Save Notification Recipients ---------------- */
 
+console.log("Allowed Recipients:", allowedRecipients);
 
-for (const recipient of recipients) {
+for (const recipientId of allowedRecipients) {
 
-    if (senderRole === "SUPER_ADMIN") {
-        allowedRecipients.push(recipient);
-    }
+    console.log("Saving recipient:", recipientId);
 
+    await recipientModel.addRecipient(
+        connection,
+        notificationId,
+        recipientId,
+        "student"
+    );
 
-}       
+}
 
             /* ---------------- Upload Attachments ---------------- */
 
@@ -222,6 +199,9 @@ for (const recipient of recipients) {
             req.files ? req.files.length : 0
 
         );
+
+
+
 
         /* ---------------- Commit Transaction ---------------- */
 
@@ -265,4 +245,190 @@ for (const recipient of recipients) {
     }
 
 }
+};
+
+/**
+ * Get Sent Notifications
+ */
+exports.getSentNotifications = async (req, res) => {
+
+    try {
+
+        const senderId = req.user.id;
+
+        const notifications =
+            await notificationModel.getSentNotifications(senderId);
+
+        return res.status(200).json({
+            success: true,
+            count: notifications.length,
+            data: notifications
+        });
+
+    } catch (error) {
+
+        console.error(error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to fetch sent notifications.",
+            error: error.message
+        });
+
+    }
+
+};
+
+
+
+/**
+ * Update Notification
+ */
+exports.updateNotification = async (req, res) => {
+
+    try {
+
+        const { notificationId } = req.params;
+
+        const senderId = req.user.id;
+
+        const { title, message, category, priority } = req.body;
+
+        const notification = await notificationModel.getNotificationBySender(
+            notificationId,
+            senderId
+        );
+
+        if (!notification) {
+
+            return res.status(404).json({
+                success: false,
+                message: "Notification not found."
+            });
+
+        }
+
+        const createdTime = new Date(notification.created_at).getTime();
+
+        const currentTime = Date.now();
+
+        const diffMinutes = (currentTime - createdTime) / (1000 * 60);
+        console.log("Created At:", notification.created_at);
+console.log("Current Time:", new Date());
+console.log("Difference (minutes):", diffMinutes);
+
+        if (req.user.role !== "admin" && diffMinutes > 15) {
+
+            return res.status(403).json({
+                success: false,
+                message: "You can edit a notification only within 15 minutes."
+            });
+
+        }
+
+        await notificationModel.updateNotification(
+            notificationId,
+            {
+                title,
+                message,
+                category,
+                priority
+            }
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: "Notification updated successfully."
+        });
+
+    } catch (error) {
+
+        console.error(error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to update notification.",
+            error: error.message
+        });
+
+    }
+
+};
+
+
+
+/**
+ * Delete Notification (1 Hour Rule)
+ */
+exports.deleteNotification = async (req, res) => {
+
+    try {
+
+        const { notificationId } = req.params;
+
+        const senderId = req.user.id;
+
+        const notification = await notificationModel.getNotificationBySender(
+            notificationId,
+            senderId
+        );
+
+        if (!notification) {
+
+            return res.status(404).json({
+                success: false,
+                message: "Notification not found."
+            });
+
+        }
+
+        const createdTime = new Date(notification.created_at).getTime();
+
+        const currentTime = Date.now();
+
+        const diffMinutes = (currentTime - createdTime) / (1000 * 60);
+
+        if (req.user.role !== "admin" && diffMinutes > 60) {
+
+            return res.status(403).json({
+                success: false,
+                message: "You can delete a notification only within 1 hour."
+            });
+
+        }
+
+        await notificationModel.softDeleteNotification(notificationId);
+        await recipientModel.softDeleteRecipients(notificationId);
+
+        const row = await db.query(
+    "SELECT notification_id, is_deleted, deleted_at FROM notification_recipients WHERE notification_id = ?",
+    [notificationId]
+);
+
+console.log(row);
+
+        return res.status(200).json({
+
+            success: true,
+
+            message: "Notification deleted successfully."
+
+        });
+
+    } catch (error) {
+
+        console.error(error);
+
+        return res.status(500).json({
+
+            success: false,
+
+            message: "Failed to delete notification.",
+
+            error: error.message
+
+        });
+
+    }
+
 };

@@ -40,6 +40,8 @@ const studentPhaseAllocationRoutes = require("./routes/studentPhaseAllocationRou
 const rolePermissionMappingRoutes = require("./routes/rolePermissionMappingRoutes");
 const assessmentRoutes = require('./routes/assesmentRoutes');
 const notificationRoutes = require("./routes/notificationRoutes");
+const userNotificationRoutes = require("./routes/userNotificationRoutes");
+const userRoutes = require("./routes/userRoutes");
 
 // ==========================
 // Express App
@@ -128,10 +130,11 @@ app.use("/api/system-permissions", systemPermissionRoutes);
 // Export App
 // ==========================
 app.use("/api/student-phase-allocations", studentPhaseAllocationRoutes);
-
+app.use("/api/users", userRoutes);
 
 
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/notifications", userNotificationRoutes);
 
 
 module.exports = app;

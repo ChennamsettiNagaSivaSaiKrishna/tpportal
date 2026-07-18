@@ -62,68 +62,32 @@ const addMultipleRecipients = async (
  * Get User Notifications
  */
 
-const getUserNotifications = async (
-    userId,
-    role
-) => {
+const getMyNotifications = async (recipientId) => {
 
     const sql = `
-
         SELECT
-
-            nr.recipient_notification_id,
-
-            nr.is_read,
-
-            nr.read_at,
-
             n.notification_id,
-
             n.title,
-
             n.message,
-
             n.category,
-
             n.priority,
-
             n.sender_id,
-
             n.sender_role,
-
-            n.created_at
-
-        FROM notification_recipients nr
-
-        INNER JOIN notifications n
-
-        ON nr.notification_id=n.notification_id
-
-        WHERE
-
-            nr.recipient_id=?
-
-            AND
-
-            nr.recipient_role=?
-
-            AND
-
-            nr.is_deleted=FALSE
-
-        ORDER BY
-
-            n.created_at DESC
-
+            n.attachment_count,
+            n.created_at,
+            nr.is_read,
+            nr.read_at
+        FROM notifications n
+        INNER JOIN notification_recipients nr
+            ON n.notification_id = nr.notification_id
+        WHERE nr.recipient_id = ?
+          AND nr.is_deleted = 0
+        ORDER BY n.created_at DESC
     `;
 
-    const [rows] = await db.query(sql, [
-        userId,
-        role
-    ]);
+    const [rows] = await db.query(sql, [recipientId]);
 
     return rows;
-
 };
 
 
@@ -132,37 +96,27 @@ const getUserNotifications = async (
  */
 
 const markAsRead = async (
+    connection,
     notificationId,
     recipientId
 ) => {
 
     const sql = `
-
         UPDATE notification_recipients
-
         SET
-
-            is_read=TRUE,
-
-            read_at=NOW()
-
+            is_read = TRUE,
+            read_at = NOW()
         WHERE
-
-            notification_id=?
-
-            AND
-
-            recipient_id=?
-
+            notification_id = ?
+            AND recipient_id = ?
     `;
 
-    await db.query(sql, [
+    await connection.execute(sql, [
         notificationId,
         recipientId
     ]);
 
 };
-
 
 /**
  * Soft Delete Notification
@@ -272,13 +226,163 @@ const getRecipients = async (
 
 };
 
+/**
+ * Get Recipient Notification
+ */
+const getRecipientNotification = async (
+    connection,
+    notificationId,
+    recipientId
+) => {
+
+    const sql = `
+        SELECT *
+        FROM notification_recipients
+        WHERE notification_id = ?
+        AND recipient_id = ?
+        LIMIT 1
+    `;
+
+    const [rows] = await connection.execute(sql, [
+        notificationId,
+        recipientId
+    ]);
+
+    return rows.length > 0 ? rows[0] : null;
+
+};
+
+
+
+/**
+ * Get Notification By Id
+ */
+const getNotificationById = async (
+    notificationId,
+    recipientId
+) => {
+
+    const sql = `
+        SELECT
+            n.*,
+            nr.is_read,
+            nr.read_at
+        FROM notifications n
+        INNER JOIN notification_recipients nr
+            ON n.notification_id = nr.notification_id
+        WHERE n.notification_id = ?
+          AND nr.recipient_id = ?
+          AND nr.is_deleted = 0
+        LIMIT 1
+    `;
+
+    const [rows] = await db.query(sql, [
+        notificationId,
+        recipientId
+    ]);
+
+    return rows.length ? rows[0] : null;
+
+};
+
+
+
+/**
+ * Soft Delete Recipients
+ */
+const softDeleteRecipients = async (notificationId) => {
+
+    const sql = `
+        UPDATE notification_recipients
+        SET
+            is_deleted = 1,
+            deleted_at = NOW()
+        WHERE notification_id = ?
+    `;
+
+    const [result] = await db.query(sql, [notificationId]);
+
+    return result;
+
+};
+
+
+/**
+ * Search My Notifications
+ */
+const searchMyNotifications = async (
+    recipientId,
+    search = "",
+    category = "",
+    priority = ""
+) => {
+
+    let sql = `
+        SELECT
+            n.notification_id,
+            n.title,
+            n.message,
+            n.category,
+            n.priority,
+            n.sender_id,
+            n.sender_role,
+            n.attachment_count,
+            n.created_at,
+            nr.is_read
+        FROM notifications n
+        INNER JOIN notification_recipients nr
+            ON n.notification_id = nr.notification_id
+        WHERE
+            nr.recipient_id = ?
+            AND nr.is_deleted = 0
+            AND n.status = 'ACTIVE'
+    `;
+
+    const params = [recipientId];
+
+    if (search) {
+
+        sql += `
+            AND (
+                n.title LIKE ?
+                OR n.message LIKE ?
+            )
+        `;
+
+        params.push(`%${search}%`, `%${search}%`);
+    }
+
+    if (category) {
+
+        sql += ` AND n.category = ? `;
+
+        params.push(category);
+    }
+
+    if (priority) {
+
+        sql += ` AND n.priority = ? `;
+
+        params.push(priority);
+    }
+
+    sql += ` ORDER BY n.created_at DESC`;
+
+    const [rows] = await db.query(sql, params);
+
+    return rows;
+
+};
+
 module.exports = {
 
     addRecipient,
 
     addMultipleRecipients,
 
-    getUserNotifications,
+    getMyNotifications,
+
+    getRecipientNotification,
 
     markAsRead,
 
@@ -286,6 +390,10 @@ module.exports = {
 
     getUnreadCount,
 
-    getRecipients
+    getRecipients,
 
+    getNotificationById,
+
+    softDeleteRecipients,
+    searchMyNotifications,
 };
