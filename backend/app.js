@@ -134,7 +134,7 @@ app.use("/api/users", userRoutes);
 
 
 app.use("/api/notifications", notificationRoutes);
-app.use("/api/notifications", userNotificationRoutes);
+// app.use("/api/notifications", userNotificationRoutes);
 
 
 module.exports = app;

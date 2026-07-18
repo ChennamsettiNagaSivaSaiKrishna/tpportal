@@ -1,149 +1,108 @@
+const db = require('../config/db');
 const attendanceModel = require("../models/attendanceModel");
 
-// Add Attendance
-exports.addAttendance = async (req, res) => {
+// 1. Get All Active/Upcoming Training Phases
+exports.getAllPhases = async (req, res) => {
     try {
-
-        const {
-            student_roll,
-            session_id,
-            is_present
-        } = req.body;
-
-        const marked_by_user_id = req.user.id;
-
-        await attendanceModel.addAttendance(
-            student_roll,
-            session_id,
-            is_present,
-            marked_by_user_id
-        );
-
-        res.status(201).json({
-            success: true,
-            message: "Attendance Added Successfully"
-        });
-
+        const [rows] = await db.execute('SELECT id, phase_name FROM training_phases WHERE status = "active" OR status = "upcoming"');
+        return res.status(200).json({ success: true, data: rows });
     } catch (err) {
-
-        console.log(err);
-
-        res.status(500).json({
-            success: false,
-            message: "Server Error"
-        });
-
+        console.error("Error inside getAllPhases:", err);
+        return res.status(500).json({ success: false, message: "Database failure reading tracking phases." });
     }
 };
 
-// Get All Attendance
-exports.getAllAttendance = async (req, res) => {
+// 2. Get Batches Associated With Selected Phase
+exports.getBatchesByPhase = async (req, res) => {
     try {
-
-        const attendance =
-            await attendanceModel.getAllAttendance();
-
-        res.json({
-            success: true,
-            attendance
-        });
-
+        const { phaseId } = req.params;
+        const [rows] = await db.execute('SELECT id, batch_name FROM phase_batches WHERE phase_id = ?', [phaseId]);
+        return res.status(200).json({ success: true, data: rows });
     } catch (err) {
-
-        console.log(err);
-
-        res.status(500).json({
-            success: false,
-            message: "Server Error"
-        });
-
+        console.error("Error inside getBatchesByPhase:", err);
+        return res.status(500).json({ success: false, message: "Database failure reading target batch arrays." });
     }
 };
 
-// Get Attendance By ID
-exports.getAttendanceById = async (req, res) => {
+// 3. Get Full Sheet Roster
+exports.getAttendanceSheet = async (req, res) => {
     try {
+        const { batch_id, date, slot } = req.query;
+        if (!batch_id || !date || !slot) {
+            return res.status(400).json({ success: false, message: "Missing required query parameters." });
+        }
+        const sessionMeta = await attendanceModel.getOrCreateSession(batch_id, date, slot);
+        const students = await attendanceModel.getSheetRecords(sessionMeta.id, batch_id);
 
-        const attendance =
-            await attendanceModel.getAttendanceById(
-                req.params.id
-            );
-
-        res.json({
+        res.status(200).json({
             success: true,
-            attendance
+            session_id: sessionMeta.id,
+            session_locked: !!sessionMeta.attendance_locked,
+            students: students
         });
-
     } catch (err) {
-
-        console.log(err);
-
-        res.status(500).json({
-            success: false,
-            message: "Server Error"
-        });
-
+        console.error(err);
+        res.status(500).json({ success: false, message: "Server Error loading attendance grid matrix." });
     }
 };
 
-// Update Attendance
-exports.updateAttendance = async (req, res) => {
+// 4. Save Grid Roster Sheet
+exports.saveAttendanceGrid = async (req, res) => {
     try {
+        const { session_id, attendance_records } = req.body;
+        const marked_by_user_id = req.user?.id || null;
 
-        const {
-            student_roll,
-            session_id,
-            is_present
-        } = req.body;
+        if (!session_id || !Array.isArray(attendance_records)) {
+            return res.status(400).json({ success: false, message: "Invalid payload footprint." });
+        }
 
-        const marked_by_user_id = req.user.id;
+        const isLocked = await attendanceModel.checkSessionLockState(session_id);
+        if (isLocked) {
+            return res.status(403).json({ success: false, message: "Operation Aborted: Sheet is locked." });
+        }
 
-        await attendanceModel.updateAttendance(
-            req.params.id,
-            student_roll,
-            session_id,
-            is_present,
-            marked_by_user_id
-        );
-
-        res.json({
-            success: true,
-            message: "Attendance Updated Successfully"
-        });
-
+        await attendanceModel.saveBulkRecords(session_id, attendance_records, marked_by_user_id);
+        res.status(200).json({ success: true, message: "Attendance sheet synchronized successfully." });
     } catch (err) {
-
-        console.log(err);
-
-        res.status(500).json({
-            success: false,
-            message: "Server Error"
-        });
-
+        console.error(err);
+        res.status(500).json({ success: false, message: "Server Error saving tracking sheets." });
     }
 };
 
-// Delete Attendance
-exports.deleteAttendance = async (req, res) => {
+// =============================================================================
+// 🚀 5. ADDED: Get Individual Student Attendance History
+// =============================================================================
+exports.getStudentAttendanceHistory = async (req, res) => {
     try {
+        // Collect parameter robustly from URL params or query strings
+        const rollNumber = req.params.rollNumber || req.query.rollNumber || req.query.student_roll;
 
-        await attendanceModel.deleteAttendance(
-            req.params.id
-        );
+        if (!rollNumber) {
+            return res.status(400).json({ success: false, message: "Roll number parameter is required." });
+        }
 
-        res.json({
+        // Fetch matched ledger data joining session specifics
+        const query = `
+            SELECT 
+                att.id,
+                ts.session_date,
+                ts.session_slot,
+                ts.topic,
+                att.attendance_status
+            FROM attendance att
+            INNER JOIN training_sessions ts ON att.session_id = ts.id
+            WHERE att.student_roll = ?
+            ORDER BY ts.session_date DESC, ts.session_slot ASC
+        `;
+
+        const [history] = await db.execute(query, [rollNumber.trim()]);
+
+        return res.status(200).json({
             success: true,
-            message: "Attendance Deleted Successfully"
+            history: history
         });
-
     } catch (err) {
-
-        console.log(err);
-
-        res.status(500).json({
-            success: false,
-            message: "Server Error"
-        });
-
+        console.error("History lookup crash inside getStudentAttendanceHistory:", err);
+        return res.status(500).json({ success: false, message: "Server tracking transaction lookup error." });
     }
 };

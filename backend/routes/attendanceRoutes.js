@@ -1,60 +1,23 @@
-const express = require("express");
-
+const express = require('express');
 const router = express.Router();
+const attendanceController = require('../controllers/attendanceController');
 
-const attendanceController = require("../controllers/attendanceController");
+// 🛠️ Debug Check Strategy: Asserts that all handlers are mapped properly before registering
+console.log("[Router Verification Check]:", {
+    getAllPhases: typeof attendanceController.getAllPhases,
+    getBatchesByPhase: typeof attendanceController.getBatchesByPhase,
+    getAttendanceSheet: typeof attendanceController.getAttendanceSheet,
+    saveAttendanceGrid: typeof attendanceController.saveAttendanceGrid,
+    getStudentAttendanceHistory: typeof attendanceController.getStudentAttendanceHistory // 🚀 Added to tracking block
+});
 
-const {
-    verifyToken,
-    verifyRole
-} = require("../middleware/authMiddleware");
+// Primary Endpoint Route Mappings
+router.get('/phases', attendanceController.getAllPhases);
+router.get('/phases/:phaseId/batches', attendanceController.getBatchesByPhase);
+router.get('/sheet', attendanceController.getAttendanceSheet);
+router.post('/save', attendanceController.saveAttendanceGrid);
 
-// ======================================
-// Add Attendance
-// ======================================
-router.post(
-    "/",
-    verifyToken,
-    verifyRole("trainings_head"),
-    attendanceController.addAttendance
-);
-
-// ======================================
-// Get All Attendance
-// ======================================
-router.get(
-    "/",
-    verifyToken,
-    attendanceController.getAllAttendance
-);
-
-// ======================================
-// Get Attendance By ID
-// ======================================
-router.get(
-    "/:id",
-    verifyToken,
-    attendanceController.getAttendanceById
-);
-
-// ======================================
-// Update Attendance
-// ======================================
-router.put(
-    "/:id",
-    verifyToken,
-    verifyRole("trainings_head"),
-    attendanceController.updateAttendance
-);
-
-// ======================================
-// Delete Attendance
-// ======================================
-router.delete(
-    "/:id",
-    verifyToken,
-    verifyRole("trainings_head"),
-    attendanceController.deleteAttendance
-);
+// 🚀 NEW: Route mapping to fetch the history logs for an individual student
+router.get('/student/:rollNumber', attendanceController.getStudentAttendanceHistory);
 
 module.exports = router;

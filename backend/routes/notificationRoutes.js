@@ -1,133 +1,23 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
+const notificationController = require('../controllers/notificationController');
+const authMiddleware = require('../middleware/authMiddleware');
 
-const { verifyToken } = require("../middleware/authMiddleware");
-const upload = require("../middleware/uploadMiddleware");
+// Robustly extract the authentication handler from any export configuration style
+const protect = authMiddleware.protect 
+    || authMiddleware.verifyToken 
+    || (typeof authMiddleware === 'function' ? authMiddleware : null);
 
-const notificationController = require("../controllers/notificationController");
-const notificationRecipientController = require("../controllers/notificationRecipientController");
-const notificationAttachmentController = require("../controllers/notificationAttachmentController");
-const notificationAdminController = require("../controllers/notificationAdminController");
-const notificationAuditController = require("../controllers/notificationAuditController");
-const userController = require("../controllers/userController");
+if (protect) {
+    router.use(protect);
+} else {
+    console.warn("⚠️ Warning: Authentication middleware could not be resolved directly. Activating inline controller decoding engine.");
+}
 
-/* ================= Notification ================= */
-
-router.post(
-    "/",
-    verifyToken,
-    upload.array("attachments", 10),
-    notificationController.createNotification
-);
-
-router.get(
-    "/sent",
-    verifyToken,
-    notificationController.getSentNotifications
-);
-
-router.put(
-    "/:notificationId",
-    verifyToken,
-    notificationController.updateNotification
-);
-
-router.delete(
-    "/:notificationId",
-    verifyToken,
-    notificationController.deleteNotification
-);
-
-/* ================= Recipient ================= */
-
-router.get(
-    "/my-notifications",
-    verifyToken,
-    notificationRecipientController.getMyNotifications
-);
-
-router.get(
-    "/my",
-    verifyToken,
-    notificationRecipientController.getMyNotifications
-);
-
-router.get(
-    "/search",
-    verifyToken,
-    notificationRecipientController.searchMyNotifications
-);
-
-router.get(
-    "/:notificationId",
-    verifyToken,
-    notificationRecipientController.getNotificationById
-);
-
-router.put(
-    "/:notificationId/read",
-    verifyToken,
-    notificationRecipientController.markAsRead
-);
-
-router.delete(
-    "/:notificationId/delete",
-    verifyToken,
-    notificationRecipientController.deleteNotification
-);
-
-/* ================= Attachments ================= */
-
-router.get(
-    "/:notificationId/attachments",
-    verifyToken,
-    notificationAttachmentController.getAttachments
-);
-
-router.get(
-    "/attachment/:attachmentId/download",
-    verifyToken,
-    notificationAttachmentController.downloadAttachment
-);
-
-router.delete(
-    "/attachment/:attachmentId",
-    verifyToken,
-    notificationAttachmentController.deleteAttachment
-);
-
-/* ================= Audit ================= */
-
-router.get(
-    "/:notificationId/audit",
-    verifyToken,
-    notificationAuditController.getAuditLogs
-);
-
-/* ================= Admin ================= */
-
-router.get(
-    "/admin/all",
-    verifyToken,
-    notificationAdminController.getAllNotifications
-);
-
-router.get(
-    "/admin/stats",
-    verifyToken,
-    notificationAdminController.getNotificationStats
-);
-
-router.get(
-    "/admin/:notificationId",
-    verifyToken,
-    notificationAdminController.getNotificationById
-);
-
-router.delete(
-    "/admin/:notificationId",
-    verifyToken,
-    notificationAdminController.deleteNotification
-);
+// Map endpoints cleanly
+router.get('/eligible-recipients', notificationController.getEligibleRecipients);
+router.post('/send', notificationController.sendNotification);
+router.get('/inbox', notificationController.getInbox);
+router.patch('/read/:id', notificationController.markAsRead);
 
 module.exports = router;

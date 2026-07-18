@@ -5,6 +5,7 @@ import IndustryLoginSelection from '../pages/Home/LoginSelection'; // Retained i
 // import UnifiedStudentAuth from '../pages/Student/Login';
 import StudentDashboard from '../pages/Student/Dashboard';
 import Login from '../pages/Auth/Login';
+import AttendanceWorkspace from '../pages/Attendance/AttendanceWorkspace'; // 🚀 Import new attendance module view
 
 const AppRoutes = () => {
   return (
@@ -17,6 +18,9 @@ const AppRoutes = () => {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Login />} />
       <Route path="/student/dashboard" element={<StudentDashboard />} />
+
+      {/* 🚀 Dynamic Attendance Route Module Context */}
+      <Route path="/attendance/workspace" element={<AttendanceWorkspace />} />
 
       {/* Generic redirect handling block */}
       <Route path="*" element={<Navigate to="/" replace />} />
