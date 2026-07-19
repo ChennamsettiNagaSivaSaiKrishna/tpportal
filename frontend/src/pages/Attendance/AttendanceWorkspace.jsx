@@ -41,13 +41,19 @@ const AttendanceWorkspace = () => {
   useEffect(() => {
     if (!selectedPhase) return;
     const fetchBatches = async () => {
-      try {
-        const res = await API.get(`/attendance/phases/${selectedPhase}/batches`);
-        if (res.data.success) setBatches(res.data.data);
-      } catch (err) {
-        setMessage({ type: 'error', text: 'Error tracking phase batch subsets.' });
-      }
-    };
+  try {
+    const res = await API.get(`/attendance/phases/${selectedPhase}/batches`);
+
+    console.log("Selected Phase:", selectedPhase);
+    console.log("Batch API Response:", res.data);
+
+    if (res.data.success) {
+      setBatches(res.data.data);
+    }
+  } catch (err) {
+    console.error(err);
+  }
+};
     fetchBatches();
   }, [selectedPhase]);
 
@@ -78,15 +84,25 @@ const AttendanceWorkspace = () => {
     try {
       setLoading(true);
       // Synchronized payload parameters matching saveAttendanceGrid backend expectation
-      const res = await API.post('/attendance/save', {
-        session_id: activeSessionId,
-        attendance_records: updatedRecords
-      });
+      console.log(updatedRecords);
+     const res = await API.post('/attendance/save', {
+  session_id: activeSessionId,
+  attendance_records: updatedRecords
+});
 
-      if (res.data.success) {
-        setMessage({ type: 'success', text: 'Attendance matrix saved successfully!' });
-        loadAttendanceSheet(); // Refresh matching parameters state grid
-      }
+console.log("Response Status:", res.status);
+console.log("Response Data:", res.data);
+
+if (res.data.success) {
+    setMessage({
+        type: "success",
+        text: "Attendance saved successfully!"
+    });
+
+    setTimeout(() => {
+        loadAttendanceSheet();
+    }, 1000);
+}
     } catch (err) {
       setMessage({ type: 'error', text: 'Transaction update verification mismatch on server layer.' });
     } finally {
