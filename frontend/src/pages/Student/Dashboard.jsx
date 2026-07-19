@@ -6,6 +6,7 @@ import SkillsAssessment from "./SkillsAssessment/SkillsAssessment";
 import DriveCalendar from "./DriveCalendar/DriveCalendar";
 import AttendanceWorkspace from "../Attendance/AttendanceWorkspace";
 import NotificationsWorkspace from "../Notifications/NotificationsWorkspace"; // 🚀 Imported Communications Hub View
+import StudentVerification from "./StudentVerification"; // 🚀 Loaded locally from same directory tree node
 import "../../App.css";
 import { usePopup } from "../../context/PopupContext";
 
@@ -17,35 +18,48 @@ const StudentDashboard = () => {
   const { showPopup } = usePopup();
 
   // Dynamic Permission Matrices based on Roles & Extension Profiles
-  const sidebarMenus = {
-    student: [
-      { key: "metrics", label: "Dashboard" },
-      { key: "placements", label: "Open Placements" },
-      { key: "skills", label: "Technical Skills" },
-      { key: "calendar", label: "Drive Calendar" },
-      { key: "resume", label: "Resume Builder" },
-      { key: "attendance", label: "Attendance History" }, 
-      { key: "notifications", label: "Notifications" }, // 🚀 Active communication hub route
-      { key: "profile", label: "Profile Information" }
-    ],
-    placement_officer: [
-      { key: "metrics", label: "Dashboard" },
-      { key: "placements", label: "Companies" },
-      { key: "drives", label: "Drives" },
-      { key: "student_verify", label: "Student Verification" },
-      { key: "manage_attendance", label: "Post Attendance" }, 
-      { key: "notifications", label: "Communications Hub" }, // 🚀 Officer configuration route
-      { key: "profile", label: "Reports" }
-    ],
-    admin: [
-      { key: "metrics", label: "Dashboard" },
-      { key: "placements", label: "Users" },
-      { key: "drives", label: "Departments" },
-      { key: "manage_attendance", label: "Post Attendance" }, 
-      { key: "notifications", label: "System Matrix Rules" }, // 🚀 Admin view channel route
-      { key: "profile", label: "Settings" }
-    ]
-  };
+  // Update your dynamic sidebar menus configuration block inside Dashboard.jsx:
+ // Restored original action labels for roles with write privileges
+ // Restored original action labels for roles with write privileges
+ const sidebarMenus = {
+  student: [
+    { key: "metrics", label: "Dashboard" },
+    { key: "placements", label: "Open Placements" },
+    { key: "skills", label: "Technical Skills" },
+    { key: "calendar", label: "Drive Calendar" },
+    { key: "resume", label: "Resume Builder" },
+    { key: "attendance", label: "Attendance History" }, 
+    { key: "notifications", label: "Notifications" }, 
+    { key: "profile", label: "Profile Information" }
+  ],
+  placement_officer: [
+    { key: "metrics", label: "Dashboard" },
+    { key: "placements", label: "Companies" },
+    { key: "drives", label: "Drives" },
+    { key: "manage_attendance", label: "Post Attendance" }, // 📝 Restored label for Officers
+    { key: "notifications", label: "Communications Hub" }, 
+    { key: "profile", label: "Reports" }
+  ],
+  placement_coordinator: [
+    { key: "metrics", label: "Dashboard" },
+    { key: "student_verify", label: "Student Verification" }, 
+    { key: "manage_attendance", label: "Post Attendance" }, // 📝 Restored label for Coordinators
+    { key: "notifications", label: "Communications Hub" }
+  ],
+  hod: [
+    { key: "metrics", label: "Dashboard" },
+    { key: "manage_attendance", label: "View Attendance Desk" }, // 👁️ View-only label for HODs
+    { key: "notifications", label: "Communications Hub" }
+  ],
+  admin: [
+    { key: "metrics", label: "Dashboard" },
+    { key: "placements", label: "Users" },
+    { key: "drives", label: "Departments" },
+    { key: "manage_attendance", label: "View Attendance Desk" }, // 👁️ View-only label for Admins
+    { key: "notifications", label: "System Matrix Rules" }, 
+    { key: "profile", label: "Settings" }
+  ]
+};
   const menus = sidebarMenus[role] || sidebarMenus.student;
 
   // Global Workspace States
@@ -260,7 +274,6 @@ const StudentDashboard = () => {
   }
 
   return (
-    // Explicit width clamps and box sizing rules applied to kill screen layout overflow bars
     <div className="dashboard-wrapper" style={{ display: "flex", width: "100vw", maxWidth: "100vw", overflowX: "hidden", minHeight: "100vh" }}>
       {/* SIDEBAR NAVIGATION PANE */}
       <aside className="workspace-sidebar" style={{ flexShrink: 0 }}>
@@ -340,47 +353,93 @@ const StudentDashboard = () => {
                 placement_head: "Placement Head Dashboard",
                 hod: "HOD Dashboard",
                 admin: "Administrator Dashboard"
-              }[role]}
+              }[role] || "Dashboard"}
             </h1>
-            <p style={{ color: "var(--text-sub)", fontSize: "0.85rem" }}>Stream Branch: {profileData.branch}</p>
+            
+            {role === "student" && profileData.branch && (
+              <p style={{ color: "var(--text-sub)", fontSize: "0.85rem" }}>Stream Branch: {profileData.branch}</p>
+            )}
 
-            <div className="metric-cards-row" style={{ marginTop: "1.5rem", marginBottom: "2rem" }}>
-              <div className="metric-panel-card">
-                <span style={{ fontSize: "0.7rem", color: "var(--text-sub)" }}>VERIFICATION AUDIT</span>
-                <h3 style={{ fontSize: "1.25rem", marginTop: "0.5rem", color: profileData.verificationStatus === "Clearance Verified" ? "#10b981" : "#f59e0b" }}>
-                  {profileData.verificationStatus}
-                </h3>
-              </div>
-              <div className="metric-panel-card">
-                <span style={{ fontSize: "0.7rem", color: "var(--text-sub)" }}>VERIFIED CGPA</span>
-                <h3 style={{ fontSize: "1.8rem", marginTop: "0.5rem" }}>{Number(profileData.cgpa).toFixed(2)}</h3>
-              </div>
-              <div className="metric-panel-card">
-                <span style={{ fontSize: "0.7rem", color: "var(--text-sub)" }}>JOB APPLICATIONS</span>
-                <h3 style={{ fontSize: "1.8rem", marginTop: "0.5rem" }}>{dashboardMetrics.applications}</h3>
-              </div>
-            </div>
-
-            <div className="metric-panel-card" style={{ marginTop: "1.5rem" }}>
-              <h3 style={{ fontSize: "1.1rem", marginBottom: "1rem", fontWeight: "700" }}>Configured Technical Skill Matrices</h3>
-              {skillsList.length === 0 ? (
-                <p style={{ color: "var(--text-sub)", fontSize: "0.85rem" }}>No dynamic skills registered yet.</p>
-              ) : (
-                <div style={{ display: "grid", gap: "1rem", marginTop: "1rem" }}>
-                  {skillsList.map((s) => (
-                    <div key={s.id} style={{ fontSize: "0.875rem" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.25rem" }}>
-                        <span style={{ fontWeight: "600" }}>{s.skill_name}</span>
-                        <span style={{ color: "var(--accent-color)", fontWeight: "700" }}>{s.rating || 70}%</span>
-                      </div>
-                      <div style={{ width: "100%", height: "8px", backgroundColor: "rgba(255,255,255,0.08)", borderRadius: "4px", overflow: "hidden" }}>
-                        <div style={{ width: `${s.rating || 70}%`, height: "100%", backgroundColor: "var(--accent-color)", borderRadius: "4px" }}></div>
-                      </div>
-                    </div>
-                  ))}
+            {/* 🚀 ROLE CONDITION 1: STUDENT DASHBOARD PANELS LAYOUT */}
+            {role === "student" ? (
+              <>
+                <div className="metric-cards-row" style={{ marginTop: "1.5rem", marginBottom: "2rem" }}>
+                  <div className="metric-panel-card" style={{ 
+                    borderLeft: `4px solid ${
+                      profileData.verificationStatus === 'Approved' || profileData.verificationStatus === 'Clearance Verified' ? '#10b981' : 
+                      profileData.verificationStatus === 'Rejected' ? '#ef4444' : '#f59e0b'
+                    }` 
+                  }}>
+                    <span style={{ fontSize: "0.7rem", color: "var(--text-sub)" }}>VERIFICATION AUDIT</span>
+                    <h3 style={{ 
+                      fontSize: "1.25rem", 
+                      marginTop: "0.5rem", 
+                      fontWeight: "700",
+                      color: (profileData.verificationStatus === "Approved" || profileData.verificationStatus === "Clearance Verified") ? "#10b981" : 
+                             profileData.verificationStatus === "Rejected" ? "#ef4444" : "#f59e0b" 
+                    }}>
+                      {profileData.verificationStatus === 'Approved' || profileData.verificationStatus === 'Clearance Verified' ? 'Clearance Verified ✓' :
+                       profileData.verificationStatus === 'Rejected' ? 'Clearance Action Flagged ✖' : 
+                       'Pending Coordinator Clearance ⏳'}
+                    </h3>
+                  </div>
+                  <div className="metric-panel-card">
+                    <span style={{ fontSize: "0.7rem", color: "var(--text-sub)" }}>VERIFIED CGPA</span>
+                    <h3 style={{ fontSize: "1.8rem", marginTop: "0.5rem" }}>{Number(profileData.cgpa).toFixed(2)}</h3>
+                  </div>
+                  <div className="metric-panel-card">
+                    <span style={{ fontSize: "0.7rem", color: "var(--text-sub)" }}>JOB APPLICATIONS</span>
+                    <h3 style={{ fontSize: "1.8rem", marginTop: "0.5rem" }}>{dashboardMetrics.applications}</h3>
+                  </div>
                 </div>
-              )}
-            </div>
+
+                <div className="metric-panel-card" style={{ marginTop: "1.5rem" }}>
+                  <h3 style={{ fontSize: "1.1rem", marginBottom: "1rem", fontWeight: "700" }}>Configured Technical Skill Matrices</h3>
+                  {skillsList.length === 0 ? (
+                    <p style={{ color: "var(--text-sub)", fontSize: "0.85rem" }}>No dynamic skills registered yet.</p>
+                  ) : (
+                    <div style={{ display: "grid", gap: "1rem", marginTop: "1rem" }}>
+                      {skillsList.map((s) => (
+                        <div key={s.id} style={{ fontSize: "0.875rem" }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.25rem" }}>
+                            <span style={{ fontWeight: "600" }}>{s.skill_name}</span>
+                            <span style={{ color: "var(--accent-color)", fontWeight: "700" }}>{s.rating || 70}%</span>
+                          </div>
+                          <div style={{ width: "100%", height: "8px", backgroundColor: "rgba(255,255,255,0.08)", borderRadius: "4px", overflow: "hidden" }}>
+                            <div style={{ width: `${s.rating || 70}%`, height: "100%", backgroundColor: "var(--accent-color)", borderRadius: "4px" }}></div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              /* 🚀 ROLE CONDITION 2: PLACEMENT STAFF / COORDINATOR / ADMIN WORKSPACE OVERVIEW PANEL */
+              <div style={{ marginTop: "1.5rem" }}>
+                <div className="metric-cards-row" style={{ marginBottom: "2rem" }}>
+                  <div className="metric-panel-card" style={{ borderLeft: "4px solid var(--accent-color, #a855f7)" }}>
+                    <span style={{ fontSize: "0.7rem", color: "var(--text-sub)" }}>SYSTEMIC ROLE ACCESS</span>
+                    <h3 style={{ fontSize: "1.4rem", marginTop: "0.5rem", color: "#fff", textTransform: "capitalize" }}>
+                      {role.replace("_", " ")} Node
+                    </h3>
+                  </div>
+                  <div className="metric-panel-card">
+                    <span style={{ fontSize: "0.7rem", color: "var(--text-sub)" }}>PORTAL STATUS</span>
+                    <h3 style={{ fontSize: "1.4rem", marginTop: "0.5rem", color: "#10b981" }}>Operational Active</h3>
+                  </div>
+                </div>
+
+                <div className="skill-management-card" style={{ padding: "2rem", background: "#121620", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.06)" }}>
+                  <h3 style={{ margin: "0 0 0.5rem 0", color: "#fff", fontSize: "1.2rem", fontWeight: "700" }}>
+                    Welcome to the Administrative Control Workspace Desk
+                  </h3>
+                  <p style={{ color: "#94a3b8", fontSize: "0.875rem", margin: 0, lineHeight: "1.5" }}>
+                    Use the navigation options on the left sidebar pane to execute operational directives matching your deployment level clearances.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         ) : activeTab === "skills" ? (
           <div style={{ width: "100%" }}>
@@ -483,10 +542,11 @@ const StudentDashboard = () => {
               </div>
             )}
           </div>
-        ) : activeTab === "manage_attendance" ? (
-          <div style={{ width: "100%", boxSizing: "border-box" }}>
-            <AttendanceWorkspace />
-          </div>
+       ) : activeTab === "manage_attendance" ? (
+        <div style={{ width: "100%", boxSizing: "border-box" }}>
+          {/* 🚀 Pass down the role prop down so the workspace card knows when to lock inputs */}
+          <AttendanceWorkspace userRole={role} />
+        </div>
         ) : activeTab === "attendance" ? (
           /* STUDENTS VIEW ATTENDANCE SUMMARY LEDGER WRAPPER */
           <div className="metric-panel-card" style={{ width: "100%", boxSizing: "border-box" }}>
@@ -538,6 +598,11 @@ const StudentDashboard = () => {
           /* 🚀 NEW ANNOUNCEMENTS & COMMUNICATIONS HUB MOUNT */
           <div style={{ width: "100%", boxSizing: "border-box" }}>
             <NotificationsWorkspace />
+          </div>
+        ) : activeTab === "student_verify" ? (
+          /* 🚀 NEW INTERACTIVE PORTFOLIO AUDIT DESK MOUNT */
+          <div style={{ width: "100%", boxSizing: "border-box" }}>
+            <StudentVerification />
           </div>
         ) : (
           <div>

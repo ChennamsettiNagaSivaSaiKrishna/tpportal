@@ -18,6 +18,10 @@ const AppRoutes = () => {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Login />} />
       <Route path="/student/dashboard" element={<StudentDashboard />} />
+      const verificationController = require('../controllers/verificationController');
+
+router.get('/placement/students-pending-verification', verifyToken, verificationController.getPendingStudents);
+router.post('/placement/update-verification-status', verifyToken, verificationController.updateVerificationStatus);
 
       {/* 🚀 Dynamic Attendance Route Module Context */}
       <Route path="/attendance/workspace" element={<AttendanceWorkspace />} />
