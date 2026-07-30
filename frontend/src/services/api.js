@@ -16,6 +16,15 @@ API.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
+    // Prevent trying to refresh token if the failed request IS the refresh token, /auth/me session check, or login
+    if (
+      originalRequest.url?.includes('/auth/refresh-token') ||
+      originalRequest.url?.includes('/auth/me') ||
+      originalRequest.url?.includes('/auth/login')
+    ) {
+      return Promise.reject(error);
+    }
+
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       try {

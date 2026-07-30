@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../hooks/useAuth';
 import AttendanceSheetGrid from './AttendanceSheetGrid';
 import API from '../../services/api';
+import { useRights } from '../../context/RightsContext';
 
-const AttendanceWorkspace = () => {
-  const { user } = useAuth();
+const AttendanceWorkspace = ({ isReadOnlyMode = false }) => {
+  const { hasRight, loadingRights } = useRights();
   
-  // 1. Permission Evaluation Clearance Matrix
-  const authorizedRoles = ['admin', 'placement_officer', 'placement_coordinator', 'placement_head', 'training_head'];
-  const hasWriteAccess = authorizedRoles.includes(user?.role);
+  // 1. Dynamic RBAC Permission Evaluation from DB Rights
+  // User can access workspace if they have rights to post attendance OR view attendance desk
+  const hasModuleAccess = hasRight('NAV_MANAGE_ATTENDANCE') || hasRight('NAV_VIEW_ATTENDANCE_DESK');
+  
+  // User can modify/save attendance only if not in read-only mode AND has the BTN_POST_ATTENDANCE right in DB
+  const canModifyAttendance = !isReadOnlyMode && hasRight('BTN_POST_ATTENDANCE');
 
   // 2. Control Layout Hooks States
   const [phases, setPhases] = useState([]);
@@ -19,7 +22,7 @@ const AttendanceWorkspace = () => {
   const [sessionSlot, setSessionSlot] = useState('Morning_S1');
   
   const [studentsData, setStudentsData] = useState([]);
-  const [activeSessionId, setActiveSessionId] = useState(null); // Tracks the session key natively
+  const [activeSessionId, setActiveSessionId] = useState(null);
   const [isLocked, setIsLocked] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
@@ -29,31 +32,29 @@ const AttendanceWorkspace = () => {
     const fetchPhases = async () => {
       try {
         const res = await API.get('/attendance/phases');
-        if (res.data.success) setPhases(res.data.data);
+        if (res.data && res.data.success) setPhases(res.data.data);
       } catch (err) {
         setMessage({ type: 'error', text: 'Failed to populate training phases data structural arrays.' });
       }
     };
-    fetchPhases();
-  }, []);
+    if (hasModuleAccess) {
+      fetchPhases();
+    }
+  }, [hasModuleAccess]);
 
   // Fetch contextual batches dynamically when phase selection switches
   useEffect(() => {
     if (!selectedPhase) return;
     const fetchBatches = async () => {
-  try {
-    const res = await API.get(`/attendance/phases/${selectedPhase}/batches`);
-
-    console.log("Selected Phase:", selectedPhase);
-    console.log("Batch API Response:", res.data);
-
-    if (res.data.success) {
-      setBatches(res.data.data);
-    }
-  } catch (err) {
-    console.error(err);
-  }
-};
+      try {
+        const res = await API.get(`/attendance/phases/${selectedPhase}/batches`);
+        if (res.data && res.data.success) {
+          setBatches(res.data.data);
+        }
+      } catch (err) {
+        console.error("Error fetching phase batches:", err);
+      }
+    };
     fetchBatches();
   }, [selectedPhase]);
 
@@ -64,14 +65,15 @@ const AttendanceWorkspace = () => {
     setMessage({ type: '', text: '' });
     
     try {
-      const res = await API.get(`/attendance/sheet`, {
+      const res = await API.get('/attendance/sheet', {
         params: { batch_id: selectedBatch, date: sessionDate, slot: sessionSlot }
       });
       
-      if (res.data.success) {
-        setStudentsData(res.data.students);
-        setActiveSessionId(res.data.session_id); // Safely store session_id matching backend requirements
-        setIsLocked(!!res.data.session_locked);
+      if (res.data && res.data.success) {
+        setStudentsData(res.data.students || []);
+        setActiveSessionId(res.data.session_id);
+        // Lock grid if backend marks session locked OR if user lacks write rights in DB
+        setIsLocked(!!res.data.session_locked || !canModifyAttendance);
       }
     } catch (err) {
       setMessage({ type: 'error', text: 'Failed loading specific workflow tracking data sheet.' });
@@ -81,28 +83,28 @@ const AttendanceWorkspace = () => {
   };
 
   const handleSaveAttendance = async (updatedRecords) => {
+    if (!canModifyAttendance) {
+      setMessage({ type: 'error', text: 'Operation blocked: Your profile lacks BTN_POST_ATTENDANCE rights.' });
+      return;
+    }
+
     try {
       setLoading(true);
-      // Synchronized payload parameters matching saveAttendanceGrid backend expectation
-      console.log(updatedRecords);
-     const res = await API.post('/attendance/save', {
-  session_id: activeSessionId,
-  attendance_records: updatedRecords
-});
+      const res = await API.post('/attendance/save', {
+        session_id: activeSessionId,
+        attendance_records: updatedRecords
+      });
 
-console.log("Response Status:", res.status);
-console.log("Response Data:", res.data);
+      if (res.data && res.data.success) {
+        setMessage({
+          type: "success",
+          text: "Attendance saved successfully!"
+        });
 
-if (res.data.success) {
-    setMessage({
-        type: "success",
-        text: "Attendance saved successfully!"
-    });
-
-    setTimeout(() => {
-        loadAttendanceSheet();
-    }, 1000);
-}
+        setTimeout(() => {
+          loadAttendanceSheet();
+        }, 1000);
+      }
     } catch (err) {
       setMessage({ type: 'error', text: 'Transaction update verification mismatch on server layer.' });
     } finally {
@@ -110,10 +112,18 @@ if (res.data.success) {
     }
   };
 
-  if (!hasWriteAccess) {
+  if (loadingRights) {
+    return (
+      <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-sub)' }}>
+        Resolving module access permissions...
+      </div>
+    );
+  }
+
+  if (!hasModuleAccess) {
     return (
       <div style={{ padding: '2rem', textAlign: 'center', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', borderRadius: '8px', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
-        🛑 Access Denied: Your account role does not clear operational parameters for target module: MANAGE_ATTENDANCE.
+        🛑 Access Denied: Your assigned database rights do not grant access to the Attendance Workspace module.
       </div>
     );
   }
@@ -129,7 +139,7 @@ if (res.data.success) {
         </h1>
       </div>
 
-      {/* Control Selector Parameters Card Dropdowns Row[cite: 1] */}
+      {/* Control Selector Parameters Card Dropdowns Row */}
       <div className="glass-auth-card" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', padding: '1.5rem', marginBottom: '1.5rem', maxWidth: '100%' }}>
         <div className="form-group" style={{ margin: 0 }}>
           <label className="form-label" style={{ fontSize: '0.75rem' }}>Training Phase</label>
@@ -213,7 +223,7 @@ if (res.data.success) {
       {studentsData.length > 0 ? (
         <AttendanceSheetGrid 
           students={studentsData} 
-          isLocked={isLocked} 
+          isLocked={isLocked || !canModifyAttendance} 
           onSave={handleSaveAttendance} 
           loading={loading}
         />

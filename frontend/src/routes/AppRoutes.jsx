@@ -1,32 +1,49 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import Home from '../pages/Home/Home'; // Import our brand new global home screen component
-import IndustryLoginSelection from '../pages/Home/LoginSelection'; // Retained intact
-// import UnifiedStudentAuth from '../pages/Student/Login';
-import StudentDashboard from '../pages/Student/Dashboard';
+
+// Pages & Components
+import Home from '../pages/Home/Home';
+import IndustryLoginSelection from '../pages/Home/LoginSelection';
 import Login from '../pages/Auth/Login';
-import AttendanceWorkspace from '../pages/Attendance/AttendanceWorkspace'; // 🚀 Import new attendance module view
+import StudentDashboard from '../pages/Student/Dashboard';
+import AttendanceWorkspace from '../pages/Attendance/AttendanceWorkspace';
+
+// RBAC Route Guard Component
+import RoleRoute from './RoleRoute';
 
 const AppRoutes = () => {
   return (
     <Routes>
-      {/* 💡 The base landing page URL is now explicitly mapped to our unified Home screen */}
+      {/* 🌐 Public Base Routes */}
       <Route path="/" element={<Home />} />
-      
-      {/* Retained your original routing patterns completely intact */}
       <Route path="/login-select" element={<IndustryLoginSelection />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Login />} />
-      <Route path="/student/dashboard" element={<StudentDashboard />} />
-      const verificationController = require('../controllers/verificationController');
 
-router.get('/placement/students-pending-verification', verifyToken, verificationController.getPendingStudents);
-router.post('/placement/update-verification-status', verifyToken, verificationController.updateVerificationStatus);
+      {/* 🔒 Secured Dashboard Route (Protected by NAV_METRICS Right) */}
+      <Route element={<RoleRoute requiredRight="NAV_METRICS" />}>
+        <Route path="/student/dashboard" element={<StudentDashboard />} />
+      </Route>
 
-      {/* 🚀 Dynamic Attendance Route Module Context */}
-      <Route path="/attendance/workspace" element={<AttendanceWorkspace />} />
+      {/* 🔒 Secured Attendance Workspace Route (Protected by NAV_MANAGE_ATTENDANCE Right) */}
+      <Route element={<RoleRoute requiredRight="NAV_MANAGE_ATTENDANCE" />}>
+        <Route path="/attendance/workspace" element={<AttendanceWorkspace isReadOnlyMode={false} />} />
+      </Route>
 
-      {/* Generic redirect handling block */}
+      {/* 🛑 Access Restricted Fallback Route */}
+      <Route 
+        path="/unauthorized" 
+        element={
+          <div style={{ color: '#ef4444', textAlign: 'center', padding: '5rem', background: '#0a0c10', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+            <h1 style={{ fontSize: '2rem', fontWeight: '800', marginBottom: '1rem' }}>🛑 Access Restricted</h1>
+            <p style={{ color: '#94a3b8', maxWidth: '500px' }}>
+              Your current user account does not possess the required database permissions to view or execute operations on this module.
+            </p>
+          </div>
+        } 
+      />
+
+      {/* 🔄 Generic Redirect Handling Block */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

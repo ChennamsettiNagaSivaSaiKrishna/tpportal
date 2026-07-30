@@ -1,21 +1,29 @@
 import React, { useState, useEffect } from 'react';
+import { useRights } from '../../context/RightsContext';
 
-const AttendanceSheetGrid = ({ students, isLocked, onSave, loading }) => {
+const AttendanceSheetGrid = ({ students = [], isLocked = false, onSave, loading = false }) => {
+  const { hasRight } = useRights();
+
+  // 🔒 RBAC Permission Check: Can modify ONLY if system is not locked AND user has BTN_POST_ATTENDANCE right
+  const canModifyAttendance = !isLocked && hasRight('BTN_POST_ATTENDANCE');
+
   const [sheetRecords, setSheetRecords] = useState([]);
 
   useEffect(() => {
-    setSheetRecords(
-      students.map(student => ({
-        roll_number: student.roll_number,
-        full_name: student.full_name,
-        branch: student.dept_name || 'General',
-        status: student.attendance_status || 'Absent' 
-      }))
-    );
+    if (students && students.length > 0) {
+      setSheetRecords(
+        students.map(student => ({
+          roll_number: student.roll_number,
+          full_name: student.full_name || student.student_name,
+          branch: student.dept_name || student.branch || 'General',
+          status: student.attendance_status || student.status || 'Absent' 
+        }))
+      );
+    }
   }, [students]);
 
   const handleCheckboxChange = (rollNumber) => {
-    if (isLocked) return;
+    if (!canModifyAttendance) return;
     setSheetRecords(prev => prev.map(record => {
       if (record.roll_number === rollNumber) {
         return { ...record, status: record.status === 'Present' ? 'Absent' : 'Present' };
@@ -25,11 +33,12 @@ const AttendanceSheetGrid = ({ students, isLocked, onSave, loading }) => {
   };
 
   const applyBulkMacro = (targetStatus) => {
-    if (isLocked) return;
+    if (!canModifyAttendance) return;
     setSheetRecords(prev => prev.map(record => ({ ...record, status: targetStatus })));
   };
 
   const handleFormSubmit = () => {
+    if (!canModifyAttendance) return;
     const optimizedPayload = sheetRecords.map(r => ({
       student_roll: r.roll_number,
       status: r.status
@@ -38,34 +47,57 @@ const AttendanceSheetGrid = ({ students, isLocked, onSave, loading }) => {
   };
 
   return (
-    <div className="metric-panel-card" style={{ padding: '1.5rem', marginTop: '1.5rem', width: '100%', maxWidth: '100%' }}>
+    <div className="metric-panel-card" style={{ padding: '1.5rem', marginTop: '1.5rem', width: '100%', maxWidth: '100%', background: '#121620', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
       
       {/* Dynamic Header Tool Row Action Buttons */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div style={{ display: 'flex', gap: '0.75rem' }}>
           <button
             type="button"
-            disabled={isLocked || loading}
+            disabled={!canModifyAttendance || loading}
             onClick={() => applyBulkMacro('Present')}
             className="submit-btn"
-            style={{ width: 'auto', margin: 0, padding: '0.5rem 1rem', fontSize: '0.8rem', background: 'rgba(16, 185, 129, 0.15)', color: '#10b981', border: '1px solid rgba(16, 185, 129, 0.3)' }}
+            style={{ 
+              width: 'auto', 
+              margin: 0, 
+              padding: '0.5rem 1rem', 
+              fontSize: '0.8rem', 
+              background: canModifyAttendance ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255, 255, 255, 0.05)', 
+              color: canModifyAttendance ? '#10b981' : 'var(--text-sub)', 
+              border: canModifyAttendance ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid var(--border-color)',
+              cursor: canModifyAttendance ? 'pointer' : 'not-allowed'
+            }}
           >
             ✓ Mark All Present
           </button>
           <button
             type="button"
-            disabled={isLocked || loading}
+            disabled={!canModifyAttendance || loading}
             onClick={() => applyBulkMacro('Absent')}
             className="submit-btn"
-            style={{ width: 'auto', margin: 0, padding: '0.5rem 1rem', fontSize: '0.8rem', background: 'rgba(255, 255, 255, 0.05)', color: 'var(--text-sub)', border: '1px solid var(--border-color)' }}
+            style={{ 
+              width: 'auto', 
+              margin: 0, 
+              padding: '0.5rem 1rem', 
+              fontSize: '0.8rem', 
+              background: 'rgba(255, 255, 255, 0.05)', 
+              color: 'var(--text-sub)', 
+              border: '1px solid var(--border-color)',
+              cursor: canModifyAttendance ? 'pointer' : 'not-allowed'
+            }}
           >
             ✕ Clear All Selections
           </button>
         </div>
         
-        {isLocked && (
+        {/* Read-Only Status Badges */}
+        {isLocked ? (
           <span style={{ fontSize: '0.8rem', fontWeight: '700', color: '#f59e0b', background: 'rgba(245, 158, 11, 0.1)', padding: '0.35rem 0.75rem', borderRadius: '4px', border: '1px solid rgba(245, 158, 11, 0.2)' }}>
             🔒 READ-ONLY: Sheet Finalized & Locked
+          </span>
+        ) : !hasRight('BTN_POST_ATTENDANCE') && (
+          <span style={{ fontSize: '0.8rem', fontWeight: '700', color: '#94a3b8', background: 'rgba(255, 255, 255, 0.05)', padding: '0.35rem 0.75rem', borderRadius: '4px', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+            👁️ AUDIT MODE: Read-Only Privilege (BTN_POST_ATTENDANCE Missing)
           </span>
         )}
       </div>
@@ -95,14 +127,14 @@ const AttendanceSheetGrid = ({ students, isLocked, onSave, loading }) => {
                 <td style={{ padding: '1rem 0.75rem', textAlign: 'center' }}>
                   <input
                     type="checkbox"
-                    disabled={isLocked || loading}
+                    disabled={!canModifyAttendance || loading}
                     checked={record.status === 'Present'}
                     onChange={() => handleCheckboxChange(record.roll_number)}
                     style={{ 
-                      cursor: isLocked ? 'not-allowed' : 'pointer', 
+                      cursor: canModifyAttendance ? 'pointer' : 'not-allowed', 
                       width: '18px', 
                       height: '18px', 
-                      accentColor: 'var(--accent-color)',
+                      accentColor: 'var(--accent-color, #a855f7)',
                       verticalAlign: 'middle'
                     }}
                   />
@@ -140,17 +172,19 @@ const AttendanceSheetGrid = ({ students, isLocked, onSave, loading }) => {
       </div>
 
       {/* Grid Update Commit Footer Action Control */}
-      <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid var(--border-color)', paddingTop: '1.25rem' }}>
-        <button
-          type="button"
-          disabled={isLocked || loading}
-          onClick={handleFormSubmit}
-          className="submit-btn"
-          style={{ width: 'auto', margin: 0, padding: '0.6rem 2rem', fontSize: '0.9rem' }}
-        >
-          {loading ? 'Committing Changes...' : 'Save & Lock Grid Layout'}
-        </button>
-      </div>
+      {canModifyAttendance && (
+        <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid var(--border-color)', paddingTop: '1.25rem' }}>
+          <button
+            type="button"
+            disabled={loading}
+            onClick={handleFormSubmit}
+            className="submit-btn"
+            style={{ width: 'auto', margin: 0, padding: '0.6rem 2rem', fontSize: '0.9rem', cursor: loading ? 'not-allowed' : 'pointer' }}
+          >
+            {loading ? 'Committing Changes...' : 'Save & Lock Grid Layout'}
+          </button>
+        </div>
+      )}
     </div>
   );
 };

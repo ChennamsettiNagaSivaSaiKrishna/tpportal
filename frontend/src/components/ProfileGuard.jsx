@@ -1,12 +1,14 @@
 import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { useRights } from '../context/RightsContext';
 
-export const ProfileGuard = ({ requireComplete = true }) => {
-  const { user, loading } = useAuth();
+export const ProfileGuard = ({ requireComplete = true, requiredRight }) => {
+  const { user, loading: authLoading } = useAuth();
+  const { hasRight, loadingRights } = useRights();
 
-  // 1. Wait for session authentication tokens to finish syncing
-  if (loading) {
+  // 1. Wait for session authentication and rights context to finish syncing
+  if (authLoading || loadingRights) {
     return null; 
   }
 
@@ -15,13 +17,13 @@ export const ProfileGuard = ({ requireComplete = true }) => {
     return <Navigate to="/student/login" replace />;
   }
 
-  // 3. Let Admins and Corporate accounts bypass these checks entirely
-  if (user.role !== 'student') {
-    return <Outlet />;
+  // 3. Check optional database-driven right requirements if passed to the guard
+  if (requiredRight && !hasRight(requiredRight)) {
+    return <Navigate to="/unauthorized" replace />;
   }
 
   // 4. Safely evaluate student onboarding fields
-  const isProfileComplete = user.branch && user.cgpa && user.phone_number;
+  const isProfileComplete = Boolean(user.branch && user.cgpa && user.phone_number);
 
   if (requireComplete && !isProfileComplete) {
     return <Navigate to="/student/complete-profile" replace />;
@@ -33,3 +35,5 @@ export const ProfileGuard = ({ requireComplete = true }) => {
 
   return <Outlet />;
 };
+
+export default ProfileGuard;

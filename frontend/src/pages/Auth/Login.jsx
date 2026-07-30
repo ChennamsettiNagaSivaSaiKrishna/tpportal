@@ -7,7 +7,7 @@ import '../../App.css';
 const UnifiedAuthGateway = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login } = useAuth(); // Connects straight to your context provider node
+  const { login } = useAuth(); 
   
   const [activeTab, setActiveTab] = useState('login');
   const [error, setError] = useState('');
@@ -27,12 +27,11 @@ const UnifiedAuthGateway = () => {
   const [validationErrors, setValidationErrors] = useState({});
   const [passwordStrength, setPasswordStrength] = useState({ score: 0, text: '', color: '', width: '0%' });
 
-  // Optional context tracking passed implicitly from the landing gateway select deck cards
   const targetContext = location.state?.targetRole || "portal";
 
-  useEffect(()=>{
-    console.log(targetContext)
-  },[targetContext])
+  useEffect(() => {
+    console.log(targetContext);
+  }, [targetContext]);
 
   const handleTabSwitch = (targetMode) => {
     setActiveTab(targetMode);
@@ -45,13 +44,11 @@ const UnifiedAuthGateway = () => {
     setPasswordStrength({ score: 0, text: '', color: '', width: '0%' });
   };
 
-  // Password Strength Monitor
+  // Password Strength Monitor (Only relevant for registration view)
   useEffect(() => {
-    if (!password) {
+    if (activeTab !== 'register' || !password) {
       setPasswordStrength({ score: 0, text: '', color: '', width: '0%' });
       return;
-
-    
     }
     let score = 0;
     if (password.length >= 8) score++;
@@ -67,8 +64,7 @@ const UnifiedAuthGateway = () => {
     } else {
       setPasswordStrength({ score: 2, text: 'Moderate Password', color: '#f59e0b', width: '66%' });
     }
-  }, [password]);
-
+  }, [password, activeTab]);
 
   const validateFields = () => {
     const errors = {};
@@ -76,6 +72,10 @@ const UnifiedAuthGateway = () => {
     
     if (!emailRegex.test(email.trim())) {
       errors.email = 'Enter a valid institutional email address.';
+    }
+
+    if (!password) {
+      errors.password = 'Password is required.';
     }
 
     if (activeTab === 'register') {
@@ -98,65 +98,58 @@ const UnifiedAuthGateway = () => {
     return Object.keys(errors).length === 0;
   };
 
-// Inside src/pages/Auth/Login.jsx -> Find your handleSubmit function:
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  setError('');
-  
-  if (!validateFields()) return;
-  setLoading(true);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    
+    if (!validateFields()) return;
+    setLoading(true);
 
-  try {
-    if (activeTab === 'login') {
-      // 🚀 THE CRITICAL SYNC: Call your Context hook with the required arguments!
-      // Argument 1: Credentials Object { email, password }
-      // Argument 2: Role Context String (targetContext extracted from the selection card)
-      const data = await login({ email: email.trim(), password }, targetContext);
-      
-if (data && data.success) {
-  const activeUser = data.data || data.user || data;
+    try {
+      if (activeTab === 'login') {
+        const data = await login({ email: email.trim(), password }, targetContext);
+        
+        if (data && data.success) {
+          const activeUser = data.data || data.user || data;
 
-  switch (activeUser.role) {
-    case "student":
-    case "placement_officer":
-    case "placement_coordinator":
-    case "placement_head":
-    case "training_head":
-    case "hod":
-    case "principal":
-    case "director":
-    case "secretary":
-    case "admin":
-      navigate("/student/dashboard");
-      break;
-
-    default:
-      setError("Access Denied: Invalid role.");
-  }
-
-} else {
-  setError(data.message || "Authentication failed.");
-}
-    } else {
-      // Registration block remains student-only...
-      const res = await API.post('/auth/register', {
-        email: email.trim(),
-        password,
-        full_name: fullName.trim(),
-        roll_number: rollNumber.trim(),
-        role: 'student'
-      });
-      if (res.data.success) {
-        handleTabSwitch('login');
-        setError('Registration successful! Authenticate below.');
+          switch (activeUser.role) {
+            case "student":
+            case "placement_officer":
+            case "placement_coordinator":
+            case "placement_head":
+            case "training_head":
+            case "hod":
+            case "principal":
+            case "director":
+            case "secretary":
+            case "admin":
+              navigate("/student/dashboard");
+              break;
+            default:
+              navigate("/student/dashboard"); // Safe fallback for valid sessions
+          }
+        } else {
+          setError(data?.message || "Authentication failed.");
+        }
+      } else {
+        const res = await API.post('/auth/register', {
+          email: email.trim(),
+          password,
+          full_name: fullName.trim(),
+          roll_number: rollNumber.trim(),
+          role: 'student'
+        });
+        if (res.data.success) {
+          handleTabSwitch('login');
+          setError('Registration successful! Authenticate below.');
+        }
       }
+    } catch (err) {
+      setError(err.response?.data?.message || err.message || 'Transaction error encountered.');
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    setError(err.response?.data?.message || err.message || 'Transaction error encountered.');
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   return (
     <div className="portal-container">
@@ -175,7 +168,6 @@ if (data && data.success) {
           
           <div className="auth-nav-tabs">
             <button type="button" className={`auth-tab-btn ${activeTab === 'login' ? 'active-auth-tab' : ''}`} onClick={() => handleTabSwitch('login')}>Sign In</button>
-            {/* Future Scaling: Hide register tab dynamically if context tracking target is not student */}
             {targetContext === 'student' && (
               <button type="button" className={`auth-tab-btn ${activeTab === 'register' ? 'active-auth-tab' : ''}`} onClick={() => handleTabSwitch('register')}>Register</button>
             )}

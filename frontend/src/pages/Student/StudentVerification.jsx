@@ -1,7 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import API from '../../services/api'; // 📂 Corrected relative path out of /pages/Student/ to hit /src/services/api
+import API from '../../services/api';
+import { useRights } from '../../context/RightsContext';
 
 const StudentVerification = () => {
+  const { hasRight, loadingRights } = useRights();
+
+  // 1. Dynamic RBAC Permission Evaluation from DB Rights
+  const hasModuleAccess = hasRight('NAV_STUDENT_VERIFY');
+  const canVerifyStudent = hasRight('BTN_VERIFY_STUDENT');
+
   const [pendingList, setPendingList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedStudent, setSelectedStudent] = useState(null);
@@ -13,8 +20,8 @@ const StudentVerification = () => {
     if (!showSilently) setLoading(true);
     try {
       const res = await API.get('/placement/students-pending-verification');
-      if (res.data.success) {
-        setPendingList(res.data.data || []);
+      if (res.data && res.data.success) {
+        setPendingList(res.data.data || res.data.students || []);
       }
     } catch (err) {
       console.error("Failed to load verification queue arrays:", err);
@@ -24,17 +31,24 @@ const StudentVerification = () => {
   };
 
   useEffect(() => {
-    fetchPendingPool(false);
-    
-    // Auto-refresh interval sync routine loops every 30 seconds to catch active signups
-    const backgroundSyncEngine = setInterval(() => {
-      fetchPendingPool(true);
-    }, 30000);
+    if (hasModuleAccess) {
+      fetchPendingPool(false);
 
-    return () => clearInterval(backgroundSyncEngine);
-  }, []);
+      // Auto-refresh interval sync routine loops every 30 seconds to catch active signups
+      const backgroundSyncEngine = setInterval(() => {
+        fetchPendingPool(true);
+      }, 30000);
+
+      return () => clearInterval(backgroundSyncEngine);
+    }
+  }, [hasModuleAccess]);
 
   const handleProcessClearance = async (rollNumber, finalDecision) => {
+    if (!canVerifyStudent) {
+      setMessage({ text: 'Operation blocked: Your profile lacks BTN_VERIFY_STUDENT rights.', type: 'error' });
+      return;
+    }
+
     try {
       const res = await API.post('/placement/update-verification-status', {
         target_roll: rollNumber,
@@ -42,7 +56,7 @@ const StudentVerification = () => {
         notes: notes
       });
 
-      if (res.data.success) {
+      if (res.data && res.data.success) {
         setMessage({ text: `Profile roll node ${rollNumber} marked successfully as ${finalDecision}!`, type: 'success' });
         setSelectedStudent(null);
         setNotes('');
@@ -52,6 +66,22 @@ const StudentVerification = () => {
       setMessage({ text: 'Failed to complete transaction audit changes.', type: 'error' });
     }
   };
+
+  if (loadingRights) {
+    return (
+      <div style={{ padding: '2rem', textAlign: 'center', color: '#94a3b8' }}>
+        Resolving verification desk access rights...
+      </div>
+    );
+  }
+
+  if (!hasModuleAccess) {
+    return (
+      <div style={{ padding: '2rem', textAlign: 'center', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', borderRadius: '8px', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+        🛑 Access Denied: Your assigned database rights do not grant access to the Student Verification module.
+      </div>
+    );
+  }
 
   return (
     <div style={{ width: '100%', padding: '0.5rem', color: '#fff' }}>
@@ -104,7 +134,7 @@ const StudentVerification = () => {
                           className="catalog-action-btn"
                           style={{ cursor: 'pointer' }}
                         >
-                          Inspect Audit &rarr;
+                          {canVerifyStudent ? "Inspect Audit →" : "View Dossier →"}
                         </button>
                       </td>
                     </tr>
@@ -134,7 +164,8 @@ const StudentVerification = () => {
               <textarea 
                 className="form-input" 
                 rows="3" 
-                placeholder="Log grounds for approval or missing updates corrections here..." 
+                disabled={!canVerifyStudent}
+                placeholder={canVerifyStudent ? "Log grounds for approval or missing updates corrections here..." : "Audit Mode: Notes input disabled"}
                 value={notes} 
                 onChange={(e) => setNotes(e.target.value)}
                 style={{ width: '100%', background: '#121620', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '6px', padding: '0.5rem', color: '#fff' }}
@@ -142,20 +173,29 @@ const StudentVerification = () => {
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem' }}>
-              <button 
-                onClick={() => handleProcessClearance(selectedStudent.roll_number, 'Approved')}
-                className="submit-btn" 
-                style={{ background: '#10b981', color: '#fff', border: 'none', padding: '0.6rem', borderRadius: '4px', cursor: 'pointer', fontWeight: '700' }}
-              >
-                ✔ Clear Profile (Approve)
-              </button>
-              <button 
-                onClick={() => handleProcessClearance(selectedStudent.roll_number, 'Rejected')}
-                className="submit-btn" 
-                style={{ background: '#ef4444', color: '#fff', border: 'none', padding: '0.6rem', borderRadius: '4px', cursor: 'pointer', fontWeight: '700' }}
-              >
-                ✖ Flag Infraction (Reject)
-              </button>
+              {canVerifyStudent ? (
+                <>
+                  <button 
+                    onClick={() => handleProcessClearance(selectedStudent.roll_number, 'Approved')}
+                    className="submit-btn" 
+                    style={{ background: '#10b981', color: '#fff', border: 'none', padding: '0.6rem', borderRadius: '4px', cursor: 'pointer', fontWeight: '700' }}
+                  >
+                    ✔ Clear Profile (Approve)
+                  </button>
+                  <button 
+                    onClick={() => handleProcessClearance(selectedStudent.roll_number, 'Rejected')}
+                    className="submit-btn" 
+                    style={{ background: '#ef4444', color: '#fff', border: 'none', padding: '0.6rem', borderRadius: '4px', cursor: 'pointer', fontWeight: '700' }}
+                  >
+                    ✖ Flag Infraction (Reject)
+                  </button>
+                </>
+              ) : (
+                <div style={{ padding: '0.6rem', background: 'rgba(255,255,255,0.05)', color: '#94a3b8', textAlign: 'center', borderRadius: '4px', fontSize: '0.8rem', border: '1px solid rgba(255,255,255,0.1)' }}>
+                  👁️ AUDIT MODE: Read-Only Privilege (BTN_VERIFY_STUDENT Missing)
+                </div>
+              )}
+              
               <button 
                 onClick={() => setSelectedStudent(null)}
                 style={{ background: 'transparent', color: '#6b7280', border: 'none', padding: '0.4rem', cursor: 'pointer', fontSize: '0.8rem' }}

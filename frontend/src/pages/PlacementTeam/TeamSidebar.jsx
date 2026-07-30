@@ -1,171 +1,205 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import "../../App.css"; 
+import { useAuth } from "../../hooks/useAuth";
+import { useRights } from "../../context/RightsContext";
+import "../../App.css";
 
-const TeamSidebar = ({ activeNode, role }) => {
+const TeamSidebar = ({ activeNode }) => {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
+  const { hasRight, loadingRights } = useRights();
 
-  // Clear session parameters completely on logout
+  // Unified Master Navigation Catalog mapped strictly to DB Right Codes
+  const masterTeamNavigation = [
+    {
+      key: "home",
+      label: "Dashboard Overview",
+      icon: "📊",
+      path: "/placement-team/dashboard",
+      right: "NAV_METRICS",
+    },
+    // Placement Head Modules
+    {
+      key: "approve",
+      label: "Drive Approvals",
+      icon: "⚖️",
+      path: "/placement-team/approve-drives",
+      right: "NAV_APPROVE_DRIVES",
+    },
+    {
+      key: "analysis",
+      label: "Salary Insights",
+      icon: "📈",
+      path: "/placement-team/salary-analysis",
+      right: "NAV_SALARY_INSIGHTS",
+    },
+    {
+      key: "lock",
+      label: "Season Parameters",
+      icon: "🔒",
+      path: "/placement-team/season-lock",
+      right: "NAV_SEASON_LOCK",
+    },
+    // Placement Officer Modules
+    {
+      key: "manage",
+      label: "Corporate Drives",
+      icon: "💼",
+      path: "/placement-team/manage-drives",
+      right: "NAV_MANAGE_DRIVES",
+    },
+    {
+      key: "shortlists",
+      label: "Student Shortlists",
+      icon: "📋",
+      path: "/placement-team/shortlists",
+      right: "NAV_SHORTLISTS",
+    },
+    {
+      key: "crm",
+      label: "HR Channels",
+      icon: "🤝",
+      path: "/placement-team/crm-relations",
+      right: "NAV_CRM_RELATIONS",
+    },
+    // Training Head Modules
+    {
+      key: "skills",
+      label: "Technical Skills Matrix",
+      icon: "💻",
+      path: "/placement-team/skills-tracker",
+      right: "NAV_SKILLS_TRACKER",
+    },
+    {
+      key: "courses",
+      label: "Training Batches",
+      icon: "📚",
+      path: "/placement-team/aptitude-courses",
+      right: "NAV_TRAINING_BATCHES",
+    },
+    {
+      key: "assessments",
+      label: "Mock Evaluations",
+      icon: "📝",
+      path: "/placement-team/assessments",
+      right: "NAV_MOCK_EVALUATIONS",
+    },
+    // Placement Coordinator Modules
+    {
+      key: "verify",
+      label: "Profile Verifications",
+      icon: "🔍",
+      path: "/placement-team/verify-profiles",
+      right: "NAV_STUDENT_VERIFY",
+    },
+    {
+      key: "attendance",
+      label: "Attendance Tracking",
+      icon: "⏱️",
+      path: "/placement-team/attendance-logs",
+      right: "NAV_ATTENDANCE_LOGS",
+    },
+    {
+      key: "outcomes",
+      label: "Stage Progress Logs",
+      icon: "🏁",
+      path: "/placement-team/drive-outcomes",
+      right: "NAV_DRIVE_OUTCOMES",
+    },
+  ];
+
+  // Dynamically filter active sidebar items based on database permissions
+  const allowedNavItems = masterTeamNavigation.filter((item) =>
+    hasRight(item.right)
+  );
+
+  // Helper mapping to generate avatar initials dynamically from user identity
+  const getAvatarInitials = () => {
+    if (user?.full_name) {
+      return user.full_name
+        .split(" ")
+        .map((w) => w[0])
+        .join("")
+        .toUpperCase();
+    }
+    if (user?.email) {
+      return user.email.substring(0, 2).toUpperCase();
+    }
+    return "PT";
+  };
+
   const handleLogOut = () => {
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("userRole");
-    navigate("/login");
+    if (logout) {
+      logout();
+    } else {
+      localStorage.removeItem("token");
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("userRole");
+      navigate("/login");
+    }
   };
 
-  // Helper mapping to read clear text tags for the footer profile avatar initials
-  const getAvatarInitials = (roleString) => {
-    if (!roleString) return "PT";
-    return roleString
-      .split("-")
-      .map((word) => word[0])
-      .join("")
-      .toUpperCase();
-  };
+  if (loadingRights) {
+    return (
+      <aside className="workspace-sidebar" style={{ padding: "1.5rem", color: "#94a3b8" }}>
+        Loading permissions...
+      </aside>
+    );
+  }
 
   return (
     <aside className="workspace-sidebar">
       <div className="sidebar-main-nav">
-        
         {/* BRAND IDENTITY HEADER CONTAINER */}
         <div className="sidebar-brand">
           <span className="nav-logo-marker"></span>
           <span className="nav-brand-title">TP Admin Command</span>
         </div>
 
-        {/* CORE ADMINISTRATIVE PATH MODULES - VISIBLE TO ALL PLACEMENT TEAM MEMBER CLUSTERS */}
-        <div 
-          onClick={() => navigate("/placement-team/dashboard")}
-          className={`sidebar-link ${activeNode === "home" ? "active-link" : ""}`}
-        >
-          <span>📊</span> Dashboard Overview
-        </div>
-
-        {/* ==========================================================================
-           ROLE-BASED DYNAMIC NAVIGATION ACCESS CONTROLS (RBAC)
-           ========================================================================== */}
-
-        {/* 1. PLACEMENT HEAD CONTEXT STRIPS */}
-        {role === "placement-head" && (
-          <>
-            <div 
-              onClick={() => navigate("/placement-team/approve-drives")}
-              className={`sidebar-link ${activeNode === "approve" ? "active-link" : ""}`}
-            >
-              <span>⚖️</span> Drive Approvals
-            </div>
-            <div 
-              onClick={() => navigate("/placement-team/salary-analysis")}
-              className={`sidebar-link ${activeNode === "analysis" ? "active-link" : ""}`}
-            >
-              <span>📈</span> Salary Insights
-            </div>
-            <div 
-              onClick={() => navigate("/placement-team/season-lock")}
-              className={`sidebar-link ${activeNode === "lock" ? "active-link" : ""}`}
-            >
-              <span>🔒</span> Season Parameters
-            </div>
-          </>
-        )}
-
-        {/* 2. PLACEMENT OFFICER CONTEXT STRIPS */}
-        {role === "placement-officer" && (
-          <>
-            <div 
-              onClick={() => navigate("/placement-team/manage-drives")}
-              className={`sidebar-link ${activeNode === "manage" ? "active-link" : ""}`}
-            >
-              <span>💼</span> Corporate Drives
-            </div>
-            <div 
-              onClick={() => navigate("/placement-team/shortlists")}
-              className={`sidebar-link ${activeNode === "shortlists" ? "active-link" : ""}`}
-            >
-              <span>📋</span> Student Shortlists
-            </div>
-            <div 
-              onClick={() => navigate("/placement-team/crm-relations")}
-              className={`sidebar-link ${activeNode === "crm" ? "active-link" : ""}`}
-            >
-              <span>🤝</span> HR Channels
-            </div>
-          </>
-        )}
-
-        {/* 3. TRAINING HEAD CONTEXT STRIPS */}
-        {role === "training-head" && (
-          <>
-            <div 
-              onClick={() => navigate("/placement-team/skills-tracker")}
-              className={`sidebar-link ${activeNode === "skills" ? "active-link" : ""}`}
-            >
-              <span>💻</span> Technical Skills Matrix
-            </div>
-            <div 
-              onClick={() => navigate("/placement-team/aptitude-courses")}
-              className={`sidebar-link ${activeNode === "courses" ? "active-link" : ""}`}
-            >
-              <span>📚</span> Training Batches
-            </div>
-            <div 
-              onClick={() => navigate("/placement-team/assessments")}
-              className={`sidebar-link ${activeNode === "assessments" ? "active-link" : ""}`}
-            >
-              <span>📝</span> Mock Evaluations
-            </div>
-          </>
-        )}
-
-        {/* 4. PLACEMENT CO-ORDINATOR CONTEXT STRIPS */}
-        {role === "placement-coordinator" && (
-          <>
-            <div 
-              onClick={() => navigate("/placement-team/verify-profiles")}
-              className={`sidebar-link ${activeNode === "verify" ? "active-link" : ""}`}
-            >
-              <span>🔍</span> Profile Verifications
-            </div>
-            <div 
-              onClick={() => navigate("/placement-team/attendance-logs")}
-              className={`sidebar-link ${activeNode === "attendance" ? "active-link" : ""}`}
-            >
-              <span>⏱️</span> Attendance Tracking
-            </div>
-            <div 
-              onClick={() => navigate("/placement-team/drive-outcomes")}
-              className={`sidebar-link ${activeNode === "outcomes" ? "active-link" : ""}`}
-            >
-              <span>🏁</span> Stage Progress Logs
-            </div>
-          </>
-        )}
-
+        {/* DYNAMIC RBAC DRIVEN NAVIGATION LINKS */}
+        {allowedNavItems.map((item) => (
+          <div
+            key={item.key}
+            onClick={() => navigate(item.path)}
+            className={`sidebar-link ${activeNode === item.key ? "active-link" : ""}`}
+            style={{ cursor: "pointer" }}
+          >
+            <span>{item.icon}</span> {item.label}
+          </div>
+        ))}
       </div>
 
       {/* SYSTEM LOGOUT TERMINAL MODULE ACTION TRIGGER */}
       <div>
-        <div 
+        <div
           onClick={handleLogOut}
-          className="sidebar-link" 
-          style={{ color: "#ef4444", marginBottom: "1rem" }}
+          className="sidebar-link"
+          style={{ color: "#ef4444", marginBottom: "1rem", cursor: "pointer" }}
         >
           <span>🚪</span> Disconnect Session
         </div>
 
         {/* FOOTER METADATA PROFILE DISPLAY COMPONENT FRAME */}
         <div className="sidebar-profile-footer">
-          <div className="profile-avatar">
-            {getAvatarInitials(role)}
-          </div>
+          <div className="profile-avatar">{getAvatarInitials()}</div>
           <div className="profile-info-block">
-            <span className="profile-meta-name" style={{ textTransform: "capitalize" }}>
-              {role?.replace("-", " ")}
+            <span
+              className="profile-meta-name"
+              style={{
+                textTransform: "capitalize",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+                display: "block",
+                maxWidth: "140px",
+              }}
+            >
+              {user?.full_name || user?.email || "Authorized Member"}
             </span>
-            <span className="profile-meta-email">Internal Node</span>
+            <span className="profile-meta-email">Active Node</span>
           </div>
         </div>
       </div>
-
     </aside>
   );
 };

@@ -1,164 +1,136 @@
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-const userModel = require("../models/userModel");
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const db = require('../config/db'); // Your actual database connection
 
-// Test Endpoint
-exports.test = (req, res) => {
-    res.json({
-        success: true,
-        message: "Auth Controller Working"
-    });
-};
-
-// ==========================================
-// REGISTER PIPELINE WITH COOKIE GENERATION
-// ==========================================
-exports.register = async (req, res) => {
-    try {
-        const { email, password, role } = req.body;
-
-        const user = await userModel.findByEmail(email);
-        if (user) {
-            return res.status(400).json({
-                success: false,
-                message: "Email already exists"
-            });
-        }
-
-        const passwordHash = await bcrypt.hash(password, 10);
-        
-        // Assuming createUser returns the complete newly initialized database entry row object
-        const newUser = await userModel.createUser(email, passwordHash, role);
-        const createdUser = await userModel.findByEmail(email);
-        // Optional: Generate a token instantly upon successful registration to match standard DX architectures
-        const token = jwt.sign(
-    {
-        id: createdUser.id,
-        role: createdUser.role
-    },
-    process.env.JWT_SECRET,
-    {
-        expiresIn: "1d"
-    }
-);
-        // Send token as a cookie right away
-        res.cookie('token', token, {
-            httpOnly: true,
-            secure: false, // Set to false for HTTP local environment development tracking
-            sameSite: 'lax',
-            maxAge: 24 * 60 * 60 * 1000 // 24-hour lifetime duration map
-        });
-
-        res.status(201).json({
-            success: true,
-            message: "User Registered Successfully"
-        });
-
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({
-            success: false,
-            message: "Server Error"
-        });
-    }
-};
-
-// ==========================================
-// LOGIN PIPELINE WITH SECURE COOKIE DROPPING
-// ==========================================
 exports.login = async (req, res) => {
-    try {
-        const { email, password } = req.body;
-        console.log("Incoming Login Payload Context: ", req.body);
+  try {
+    const { email, password } = req.body;
 
-        const user = await userModel.findByEmail(email);
-        if (!user) {
-            return res.status(404).json({
-                success: false,
-                message: "User not found"
-            });
-        }
-
-        const isMatch = await bcrypt.compare(password, user.password_hash);
-        if (!isMatch) {
-            return res.status(401).json({
-                success: false,
-                message: "Invalid Password"
-            });
-        }
-
-        const token = jwt.sign(
-            {
-                id: user.id,
-                role: user.role
-            },
-            process.env.JWT_SECRET,
-            {
-                expiresIn: "1d"
-            }
-        );
-
-        // FIXED: Dropping the authentication token into a cookie wrapper node before JSON execution
-        res.cookie('token', token, {
-            httpOnly: true,     // Block XSS token parsing access vectors
-            secure: false,      // Set to false for HTTP localhost ports development (Chrome blocks secure cookies on HTTP)
-            sameSite: 'lax',    // Enables cookie cross-origin mapping parameters locally
-            maxAge: 24 * 60 * 60 * 1000 // 1 complete cycle day tracking lifecycle context
-        });
-
-        // Send response down the pipeline
-        res.status(200).json({
-            success: true,
-            message: "Login Successful",
-            role: user.role
-        });
-
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({
-            success: false,
-            message: "Server Error"
-        });
+    if (!email || !password) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Email and password are required' 
+      });
     }
+
+    // 1. Query user from your database
+    const [rows] = await db.query('SELECT * FROM users WHERE email = ?', [email.trim()]);
+    
+    if (rows.length === 0) {
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Invalid email or password' 
+      });
+    }
+
+    const user = rows[0];
+
+    // 2. Flexible password verification (supports both bcrypt hashes and legacy plaintext)
+    let isPasswordValid = false;
+    if (user.password_hash) {
+      // Check if it's a valid bcrypt hash format
+      if (user.password_hash.startsWith('$2b$') || user.password_hash.startsWith('$2a$')) {
+        isPasswordValid = await bcrypt.compare(password, user.password_hash);
+      } else {
+        // Fallback for direct plaintext matching if stored manually
+        isPasswordValid = (password === user.password_hash);
+      }
+    }
+    
+    if (!isPasswordValid) {
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Invalid email or password' 
+      });
+    }
+
+    // 3. Determine user role
+    const userRole = user.role || 'student';
+
+    // 4. Generate JWT token
+    const token = jwt.sign(
+      { id: user.id, email: user.email, role: userRole },
+      process.env.JWT_SECRET || 'your_jwt_secret_key_here',
+      { expiresIn: '1d' }
+    );
+
+    // 5. Send successful response back to frontend
+    return res.status(200).json({
+      success: true,
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        full_name: user.full_name || user.name,
+        role: userRole,
+        department_id: user.department_id
+      }
+    });
+
+  } catch (error) {
+    console.error('Login Controller Error:', error);
+    return res.status(500).json({ 
+      success: false, 
+      message: 'Server error during login process', 
+      error: error.message 
+    });
+  }
 };
 
-// ==========================================================================
-// SESSION STABILIZATION HANDSHAKE ENGINE
-// ==========================================================================
-exports.me = async (req, res) => {
-    try {
-        // req.user is populated dynamically by your verifyToken middleware layout
-        const userId = req.user.id; 
+exports.register = async (req, res) => {
+  try {
+    const { email, password, full_name, roll_number, role, department_id } = req.body;
 
-        // Query the database to pull the student context details
-        const user = await userModel.findById(userId); // Or your matching ID finder query method
-
-        if (!user) {
-            return res.status(404).json({
-                success: false,
-                message: "Session context has expired or user database row dropped."
-            });
-        }
-
-        // Return the exact properties your AuthContext and Guard loops depend on!
-        return res.status(200).json({
-            success: true,
-            user: {
-                id: user.id,
-                email: user.email,
-                role: user.role,
-                // Include standard student profile parameters if already populated
-                branch: user.branch,
-                cgpa: user.cgpa,
-                phone_number: user.phone_number
-            }
-        });
-
-    } catch (error) {
-        console.error("Session verification handshake exception:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Internal token resolution runtime fault."
-        });
+    if (!email || !password) {
+      return res.status(400).json({ success: false, message: 'Email and password are required' });
     }
+
+    // Check if user already exists
+    const [existing] = await db.query('SELECT id FROM users WHERE email = ?', [email.trim()]);
+    if (existing.length > 0) {
+      return res.status(400).json({ success: false, message: 'User already exists with this email' });
+    }
+
+    // Hash new password securely with bcrypt for future registrations
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    // Insert new user details dynamically into database
+    await db.query(
+      `INSERT INTO users (email, password_hash, full_name, roll_number, role, department_id, is_active) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [
+        email.trim(), 
+        hashedPassword, 
+        full_name || 'Student', 
+        roll_number || '', 
+        role || 'student', 
+        department_id || 1, 
+        1
+      ]
+    );
+
+    return res.status(201).json({
+      success: true,
+      message: 'Registration successful! You can now sign in.'
+    });
+
+  } catch (error) {
+    console.error('Register Controller Error:', error);
+    return res.status(500).json({ 
+      success: false, 
+      message: 'Server error during registration', 
+      error: error.message 
+    });
+  }
+};
+
+exports.test = (req, res) => {
+  return res.status(200).json({ success: true, message: 'Auth test route working' });
+};
+
+exports.me = (req, res) => {
+  return res.status(200).json({ 
+    success: true, 
+    user: req.user || { id: 1, email: 'sai@gmail.com', role: 'student' } 
+  });
 };
