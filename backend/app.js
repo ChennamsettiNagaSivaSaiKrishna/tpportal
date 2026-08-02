@@ -51,6 +51,7 @@ const managementProfileRoutes = require("./routes/managementProfileRoutes");
 const placementTeamProfileRoutes = require("./routes/placementTeamProfileRoutes");
 const systemPermissionRoutes = require("./routes/systemPermissionRoutes");
 const rolePermissionMappingRoutes = require("./routes/rolePermissionMappingRoutes");
+const adminRbacRoutes = require('./routes/adminRbacRoutes'); // or authRoutes
 
 // Communications & Announcements Modules
 const announcementRoutes = require("./routes/announcementRoutes");
@@ -91,14 +92,15 @@ app.get("/", (req, res) => {
 // 🔐 Dynamic RBAC Core API Routes
 // ==========================
 app.use("/api/auth", authRbacRoutes);       // Exports /api/auth/getPageRights
-app.use("/api/admin/rbac", adminRbacRoutes); // Exports Admin Suite Rights/Groups CRUD
+// app.use("/api/admin/rbac", adminRbacRoutes); // Exports Admin Suite Rights/Groups CRUD
 
 // ==========================
 // Authentication & Users
 // ==========================
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
-app.use("/api/admin", adminRoutes);
+// app.use("/api/admin", adminRoutes);
+app.use('/api/admin', adminRbacRoutes);
 
 // ==========================
 // Role Specific Portals

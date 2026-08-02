@@ -43,4 +43,10 @@ router.post('/groups', verifyToken, validateHandler(createGroup, 'createGroup'))
 router.post('/groups/assign-rights', verifyToken, validateHandler(assignRightsToGroup, 'assignRightsToGroup'));
 router.post('/users/assign-group', verifyToken, validateHandler(assignUserGroups, 'assignUserGroups'));
 
+router.get('/rbac-matrix', adminRbacController.getAdminMatrix);
+router.post('/rbac-create', adminRbacController.createEntity);
+router.post('/rbac-assign', adminRbacController.assignMapping);
+router.get('/users-list', adminRbacController.getUsersList);
+router.post('/assign-user-role', adminRbacController.assignUserRole);
+
 module.exports = router;

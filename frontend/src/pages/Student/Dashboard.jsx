@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "../../hooks/useAuth";
-import { useRights } from "../../context/RightsContext";
 import API from "../../services/api";
 import SkillManagement from "./SkillManagement/SkillManagement";
 import SkillsAssessment from "./SkillsAssessment/SkillsAssessment";
@@ -8,56 +7,66 @@ import DriveCalendar from "./DriveCalendar/DriveCalendar";
 import AttendanceWorkspace from "../Attendance/AttendanceWorkspace";
 import NotificationsWorkspace from "../Notifications/NotificationsWorkspace";
 import StudentVerification from "./StudentVerification";
+import RbacManagement from "../Admin/RbacManagement"; // Imported your admin panel file correctly
 import "../../App.css";
 import { usePopup } from "../../context/PopupContext";
 
 const Dashboard = () => {
   const { logout, user } = useAuth();
-  const { isStudent, loadingRights } = useRights();
   const resumePrintRef = useRef();
   const { showPopup } = usePopup();
 
-  // Force role detection based on auth user object or fallback to window path/localStorage if context fails
-  const userRole = user?.role || localStorage.getItem("userRole") || "";
-  const forceIsStudent = userRole.toLowerCase().includes("student") || isStudent;
-  const forceIsPlacement = userRole.toLowerCase().includes("placement") || userRole.toLowerCase().includes("admin") || window.location.pathname.includes("placement");
-  
-  // Final resolution: if it's explicitly placement, isStudent is false. Otherwise use context.
-  const resolvedIsStudent = forceIsPlacement ? false : forceIsStudent;
+  // Rights Management States
+  const [userRights, setUserRights] = useState([]);
+  const [rightsLoading, setRightsLoading] = useState(true);
 
-  // 1. MASTER FEATURE CATALOG (Completely Role-Agnostic & DB Rights Driven)[cite: 1]
+  // Determine active user role purely from authenticated user session state (No LocalStorage)
+  const userRole = user?.role || "student";
+
+  // Fetch rights assigned to user role from the MySQL database dynamically on login/mount
+  useEffect(() => {
+    const fetchUserRights = async () => {
+      try {
+        setRightsLoading(true);
+        const res = await API.get("/auth/user-rights", { params: { role: userRole } }).catch(() => null);
+        
+        if (res && res.data && res.data.success) {
+          setUserRights(res.data.rights || res.data.userRights || []);
+        } else {
+          setUserRights(res?.data?.rights || []);
+        }
+      } catch (err) {
+        console.error("Failed to synchronize role access rights:", err);
+        setUserRights([]);
+      } finally {
+        setRightsLoading(false);
+      }
+    };
+
+    fetchUserRights();
+  }, [userRole]);
+
+  // 1. MASTER FEATURE CATALOG WITH ASSIGNED COMPONENT / RIGHT IDs (Database Driven)
   const masterNavigation = [
-    { key: "metrics", label: "Dashboard", right: "NAV_METRICS" },
-    { key: "placements", label: "Open Placements / Companies", right: "NAV_PLACEMENTS" },
-    { key: "drives", label: "Drives Desk", right: "NAV_DRIVES" },
-    { key: "skills", label: "Technical Skills", right: "NAV_SKILLS" },
-    { key: "calendar", label: "Drive Calendar", right: "NAV_CALENDAR" },
-    { key: "resume", label: "Resume Builder", right: "NAV_RESUME" },
-    { key: "attendance", label: "Attendance History", right: "NAV_ATTENDANCE_HISTORY" },
-    { key: "student_verify", label: "Student Verification", right: "NAV_STUDENT_VERIFY" },
-    { key: "manage_attendance", label: "Post Attendance", right: "NAV_MANAGE_ATTENDANCE" },
-    { key: "view_attendance_desk", label: "View Attendance Desk", right: "NAV_VIEW_ATTENDANCE_DESK" },
-    { key: "notifications", label: "Communications Hub", right: "NAV_NOTIFICATIONS" },
-    { key: "profile", label: "Profile Information", right: "NAV_PROFILE" }
+    { key: "metrics", label: "Dashboard", rightId: "NAV_METRICS" },
+    { key: "placements", label: "Open Placements / Companies", rightId: "NAV_PLACEMENTS" },
+    { key: "drives", label: "Drives Desk", rightId: "NAV_DRIVES" },
+    { key: "skills", label: "Technical Skills", rightId: "NAV_SKILLS" },
+    { key: "calendar", label: "Drive Calendar", rightId: "NAV_CALENDAR" },
+    { key: "resume", label: "Resume Builder", rightId: "NAV_RESUME" },
+    { key: "attendance", label: "Attendance History", rightId: "NAV_ATTENDANCE_HISTORY" },
+    { key: "student_verify", label: "Student Verification", rightId: "NAV_STUDENT_VERIFY" },
+    { key: "manage_attendance", label: "Post Attendance", rightId: "NAV_MANAGE_ATTENDANCE" },
+    { key: "view_attendance_desk", label: "View Attendance Desk", rightId: "NAV_VIEW_ATTENDANCE_DESK" },
+    { key: "notifications", label: "Communications Hub", rightId: "NAV_NOTIFICATIONS" },
+    { key: "rbac_admin", label: "RBAC Administration", rightId: "NAV_RBAC_ADMIN" }, // Added Admin Panel Tab
+    { key: "profile", label: "Profile Information", rightId: "NAV_PROFILE" }
   ];
 
-  // Strict Role-Based Menu Filtering[cite: 1]
-  const menus = masterNavigation.filter(item => {
-    // Student vs Placement exclusive tabs definition[cite: 1]
-    const studentOnlyTabs = ["skills", "calendar", "resume", "attendance"];
-    const placementOnlyTabs = ["manage_attendance", "view_attendance_desk", "student_verify"];
+  // Filter menus dynamically where DB right ID matches component rightId
+  const menus = masterNavigation.filter(item => userRights.includes(item.rightId));
 
-    if (resolvedIsStudent) {
-      if (placementOnlyTabs.includes(item.key)) return false;
-    } else {
-      // Placement team gets administrative tabs and communications[cite: 1]
-      if (studentOnlyTabs.includes(item.key)) return false;
-    }
-
-    return true;
-  });
-
-  // Global Workspace States[cite: 1]
+  // Global Workspace States
   const [activeTab, setActiveTab] = useState("metrics"); 
   const [profileData, setProfileData] = useState({
     fullName: "",
@@ -78,16 +87,16 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [submitLoading, setSubmitLoading] = useState(false);
 
-  // Technical Skills Module States[cite: 1]
+  // Technical Skills Module States
   const [skillsList, setSkillsList] = useState([]);
   const [isExamActive, setIsExamActive] = useState(false);
   const [selectedActiveSkillName, setSelectedActiveSkillName] = useState("");
 
-  // Attendance History States[cite: 1]
+  // Attendance History States
   const [attendanceHistory, setAttendanceHistory] = useState([]);
   const [attendanceLoading, setAttendanceLoading] = useState(false);
 
-  // Profile Modification Form State[cite: 1]
+  // Profile Modification Form State
   const [formData, setFormData] = useState({
     fullName: "",
     phoneNumber: "",
@@ -97,7 +106,7 @@ const Dashboard = () => {
     departmentId: "",
   });
 
-  // Resume Generator Engine States[cite: 1]
+  // Resume Generator Engine States
   const [resumeData, setResumeData] = useState({
     summary: "",
     experience: "",
@@ -110,7 +119,7 @@ const Dashboard = () => {
     profileData.branch && profileData.rollNumber && profileData.phoneNumber
   );
 
-  // 10-Minute Security Session Activity Monitor Loop[cite: 1]
+  // 10-Minute Security Session Activity Monitor Loop
   useEffect(() => {
     let timeoutId;
     const resetTimer = () => {
@@ -129,10 +138,10 @@ const Dashboard = () => {
     };
   }, [logout]);
 
-  // Ref guard to block overlapping / duplicate execution loops[cite: 1]
+  // Ref guard to block overlapping execution loops
   const fetchingRef = useRef(false);
 
-  // Primary Workspace Context Loader Function Block[cite: 1]
+  // Primary Workspace Context Loader Function Block
   const fetchWorkspaceData = useCallback(async () => {
     if (fetchingRef.current) return;
     fetchingRef.current = true;
@@ -178,7 +187,7 @@ const Dashboard = () => {
     fetchWorkspaceData();
   }, [fetchWorkspaceData]);
 
-  // Student Attendance Ledger Data Load Hook Block[cite: 1]
+  // Student Attendance Ledger Data Load Hook Block
   useEffect(() => {
     if (activeTab === "attendance" && profileData.rollNumber) {
       const fetchStudentAttendance = async () => {
@@ -267,10 +276,19 @@ const Dashboard = () => {
     printWindow.document.close();
   };
 
-  if (loading || loadingRights) {
+  if (loading || rightsLoading) {
     return (
       <div className="portal-container" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-        Syncing Portal Context & RBAC Permissions...[cite: 1]
+        Syncing Portal Context & RBAC Permissions...
+      </div>
+    );
+  }
+
+  if (!userRights || userRights.length === 0) {
+    return (
+      <div className="portal-container" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100vh", color: "#fff", background: "#0b0f19" }}>
+        <h2>no rights assigned to user</h2>
+        <button onClick={logout} className="submit-btn" style={{ marginTop: "1rem", width: "150px", background: "#ef4444" }}>Log Out</button>
       </div>
     );
   }
@@ -301,7 +319,7 @@ const Dashboard = () => {
       <main className="workspace-content-frame" style={{ display: "flex", flexDirection: "column", flex: 1, width: "100%", overflowX: "hidden", boxSizing: "border-box", padding: "1.5rem" }}>
         
         {/* PROFILE TAB VIEW */}
-        {activeTab === "profile" ? (
+        {activeTab === "profile" && userRights.includes("NAV_PROFILE") ? (
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "80vh", width: "100%" }}>
             <div style={{ width: "100%", maxWidth: "550px" }}>
               <h2 style={{ textAlign: "center", marginBottom: "1.5rem", fontWeight: "800" }}>Update Profile Details</h2>
@@ -345,7 +363,7 @@ const Dashboard = () => {
               </form>
             </div>
           </div>
-        ) : activeTab === "metrics" ? (
+        ) : activeTab === "metrics" && userRights.includes("NAV_METRICS") ? (
           
           /* DASHBOARD METRICS ANALYTICS PANEL */
           <div style={{ width: "100%", maxWidth: "100%" }}>
@@ -357,7 +375,7 @@ const Dashboard = () => {
               <p style={{ color: "var(--text-sub)", fontSize: "0.85rem" }}>Stream Branch: {profileData.branch}</p>
             )}
 
-            {resolvedIsStudent ? (
+            {userRole.toLowerCase().includes("student") ? (
               <>
                 <div className="metric-cards-row" style={{ marginTop: "1.5rem", marginBottom: "2rem" }}>
                   <div className="metric-panel-card" style={{ 
@@ -436,7 +454,7 @@ const Dashboard = () => {
             )}
           </div>
 
-        ) : activeTab === "skills" ? (
+        ) : activeTab === "skills" && userRights.includes("NAV_SKILLS") ? (
           <div style={{ width: "100%" }}>
             {isExamActive ? (
               <SkillsAssessment
@@ -499,12 +517,12 @@ const Dashboard = () => {
             )}
           </div>
 
-        ) : activeTab === "calendar" ? (
+        ) : activeTab === "calendar" && userRights.includes("NAV_CALENDAR") ? (
           <div style={{ width: "100%" }}>
             <DriveCalendar studentCgpa={profileData?.cgpa || 0.00} studentBranch={profileData?.branch || "CSE"} />
           </div>
 
-        ) : activeTab === "resume" ? (
+        ) : activeTab === "resume" && userRights.includes("NAV_RESUME") ? (
           <div style={{ width: "100%" }}>
             {!isResumeConfigured ? (
               <div style={{ maxWidth: "600px" }}>
@@ -540,17 +558,17 @@ const Dashboard = () => {
             )}
           </div>
 
-        ) : activeTab === "manage_attendance" ? (
+        ) : activeTab === "manage_attendance" && userRights.includes("NAV_MANAGE_ATTENDANCE") ? (
           <div style={{ width: "100%", boxSizing: "border-box" }}>
             <AttendanceWorkspace isReadOnlyMode={false} />
           </div>
 
-        ) : activeTab === "view_attendance_desk" ? (
+        ) : activeTab === "view_attendance_desk" && userRights.includes("NAV_VIEW_ATTENDANCE_DESK") ? (
           <div style={{ width: "100%", boxSizing: "border-box" }}>
             <AttendanceWorkspace isReadOnlyMode={true} />
           </div>
 
-        ) : activeTab === "attendance" ? (
+        ) : activeTab === "attendance" && userRights.includes("NAV_ATTENDANCE_HISTORY") ? (
           <div className="metric-panel-card" style={{ width: "100%", boxSizing: "border-box" }}>
             <h2 style={{ fontSize: "1.25rem", fontWeight: "700", marginBottom: "0.5rem", color: "#fff" }}>
               Your Training Attendance Summary Ledger
@@ -597,14 +615,19 @@ const Dashboard = () => {
             )}
           </div>
 
-        ) : activeTab === "notifications" ? (
+        ) : activeTab === "notifications" && userRights.includes("NAV_NOTIFICATIONS") ? (
           <div style={{ width: "100%", boxSizing: "border-box" }}>
             <NotificationsWorkspace />
           </div>
 
-        ) : activeTab === "student_verify" ? (
+        ) : activeTab === "student_verify" && userRights.includes("NAV_STUDENT_VERIFY") ? (
           <div style={{ width: "100%", boxSizing: "border-box" }}>
             <StudentVerification />
+          </div>
+
+        ) : activeTab === "rbac_admin" && userRights.includes("NAV_RBAC_ADMIN") ? (
+          <div style={{ width: "100%", boxSizing: "border-box" }}>
+            <RbacManagement />
           </div>
 
         ) : (

@@ -78,14 +78,13 @@ app.get("/", (req, res) => {
 // ==========================
 app.use("/api/auth", authRbacRoutes);
 app.use("/api/admin/rbac", adminRbacRoutes);
+app.use("/api/admin", adminRbacRoutes);
 app.use("/api/auth", authRoutes);
 
 // 💡 Mounted /api/user routes to fix RightsContext fetch /api/user/rights 404 error
 app.use("/api/user", userRoutes);
 
 app.use("/api/users", userRoutes);
-app.use("/api/admin", adminRoutes);
-app.use("/api/admin", adminRbacManagementRoutes); // Provides /api/admin/rbac-matrix and /api/admin/update-role-permissions
 
 app.use("/api/student", studentRoutes);
 app.use("/api/placement-officer", placementOfficerRoutes);

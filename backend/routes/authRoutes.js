@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
+const db = require('../config/db');
+const adminRbacController = require('../controllers/adminRbacController');
 
 // 1. User Registration Route
 router.post('/register', authController.register);
@@ -42,5 +44,29 @@ router.get('/me', (req, res) => {
 router.post('/refresh-token', (req, res) => {
   return res.status(200).json({ success: true, message: 'Token refreshed successfully' });
 });
+
+router.get('/user-rights', adminRbacController.getUserRights);
+
+// router.get('/user-rights', async (req, res) => {
+//   try {
+//     const { role } = req.query;
+//     if (!role) {
+//       return res.status(200).json({ success: true, rights: [] });
+//     }
+
+//     // Pure database query fetching permission keys assigned to this role
+//     const [rows] = await db.query(
+//       "SELECT permission_key FROM role_permissions WHERE role = ?", 
+//       [role]
+//     );
+
+//     const rights = rows.map(row => row.permission_key);
+
+//     return res.status(200).json({ success: true, rights });
+//   } catch (err) {
+//     console.error("Database error fetching role permissions:", err.message);
+//     return res.status(500).json({ success: false, message: err.message });
+//   }
+// });
 
 module.exports = router;
