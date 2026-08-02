@@ -44,7 +44,7 @@ const NotificationsWorkspace = () => {
         setFilteredRecipients(recipientsRes.data.data);
       }
       const studentsOnly = recipientsRes.data.data.filter(item => item.role === 'student');
-      if (studentsOnly.length == 0) {
+      if (studentsOnly.length === 0) {
         setCurrentUserRole('student');
       }
       

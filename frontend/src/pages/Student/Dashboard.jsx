@@ -7,29 +7,29 @@ import DriveCalendar from "./DriveCalendar/DriveCalendar";
 import AttendanceWorkspace from "../Attendance/AttendanceWorkspace";
 import NotificationsWorkspace from "../Notifications/NotificationsWorkspace";
 import StudentVerification from "./StudentVerification";
-import RbacManagement from "../Admin/RbacManagement"; // Imported your admin panel file correctly
+import RbacManagement from "../Admin/RbacManagement";
+import UserProfile from "../../components/UserProfile";
 import "../../App.css";
 import { usePopup } from "../../context/PopupContext";
+import { Menu, LogOut, LayoutDashboard, Briefcase, Calendar, FileText, User, Shield, CheckCircle, Bell, Users } from "lucide-react";
 
 const Dashboard = () => {
   const { logout, user } = useAuth();
   const resumePrintRef = useRef();
+  // eslint-disable-next-line no-unused-vars
   const { showPopup } = usePopup();
 
-  // Rights Management States
   const [userRights, setUserRights] = useState([]);
   const [rightsLoading, setRightsLoading] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(true);
 
-  // Determine active user role purely from authenticated user session state (No LocalStorage)
   const userRole = user?.role || "student";
 
-  // Fetch rights assigned to user role from the MySQL database dynamically on login/mount
   useEffect(() => {
     const fetchUserRights = async () => {
       try {
         setRightsLoading(true);
         const res = await API.get("/auth/user-rights", { params: { role: userRole } }).catch(() => null);
-        
         if (res && res.data && res.data.success) {
           setUserRights(res.data.rights || res.data.userRights || []);
         } else {
@@ -42,11 +42,25 @@ const Dashboard = () => {
         setRightsLoading(false);
       }
     };
-
     fetchUserRights();
   }, [userRole]);
 
-  // 1. MASTER FEATURE CATALOG WITH ASSIGNED COMPONENT / RIGHT IDs (Database Driven)
+  const getMenuIcon = (key) => {
+    switch (key) {
+      case "metrics": return <LayoutDashboard size={18} />;
+      case "placements": case "drives": return <Briefcase size={18} />;
+      case "skills": return <Users size={18} />;
+      case "calendar": return <Calendar size={18} />;
+      case "resume": return <FileText size={18} />;
+      case "attendance": case "manage_attendance": case "view_attendance_desk": return <CheckCircle size={18} />;
+      case "student_verify": return <Shield size={18} />;
+      case "notifications": return <Bell size={18} />;
+      case "rbac_admin": return <Shield size={18} />;
+      case "profile": return <User size={18} />;
+      default: return <LayoutDashboard size={18} />;
+    }
+  };
+
   const masterNavigation = [
     { key: "metrics", label: "Dashboard", rightId: "NAV_METRICS" },
     { key: "placements", label: "Open Placements / Companies", rightId: "NAV_PLACEMENTS" },
@@ -59,67 +73,35 @@ const Dashboard = () => {
     { key: "manage_attendance", label: "Post Attendance", rightId: "NAV_MANAGE_ATTENDANCE" },
     { key: "view_attendance_desk", label: "View Attendance Desk", rightId: "NAV_VIEW_ATTENDANCE_DESK" },
     { key: "notifications", label: "Communications Hub", rightId: "NAV_NOTIFICATIONS" },
-    { key: "rbac_admin", label: "RBAC Administration", rightId: "NAV_RBAC_ADMIN" }, // Added Admin Panel Tab
+    { key: "rbac_admin", label: "RBAC Administration", rightId: "NAV_RBAC_ADMIN" },
     { key: "profile", label: "Profile Information", rightId: "NAV_PROFILE" }
   ];
 
-  // Filter menus dynamically where DB right ID matches component rightId
   const menus = masterNavigation.filter(item => userRights.includes(item.rightId));
 
-  // Global Workspace States
   const [activeTab, setActiveTab] = useState("metrics"); 
-  const [profileData, setProfileData] = useState({
-    fullName: "",
-    rollNumber: "",
-    email: "",
-    branch: "",
-    cgpa: 0,
-    phoneNumber: "",
-    verificationStatus: "",
-    departmentId: "",
-  });
-  const [dashboardMetrics, setDashboardMetrics] = useState({
-    applications: 0,
-    verified: false,
-    drives: 0,
-  });
+  const [profileData, setProfileData] = useState({ fullName: "", rollNumber: "", email: "", branch: "", cgpa: 0, phoneNumber: "", verificationStatus: "", departmentId: "" });
+  const [dashboardMetrics, setDashboardMetrics] = useState({ applications: 0, verified: false, drives: 0 });
   const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitLoading, setSubmitLoading] = useState(false);
 
-  // Technical Skills Module States
   const [skillsList, setSkillsList] = useState([]);
   const [isExamActive, setIsExamActive] = useState(false);
+  // eslint-disable-next-line no-unused-vars
   const [selectedActiveSkillName, setSelectedActiveSkillName] = useState("");
 
-  // Attendance History States
+  // eslint-disable-next-line no-unused-vars
   const [attendanceHistory, setAttendanceHistory] = useState([]);
+  // eslint-disable-next-line no-unused-vars
   const [attendanceLoading, setAttendanceLoading] = useState(false);
 
-  // Profile Modification Form State
-  const [formData, setFormData] = useState({
-    fullName: "",
-    phoneNumber: "",
-    cgpa: "",
-    rollNumber: "",
-    activeBacklogs: "0",
-    departmentId: "",
-  });
-
-  // Resume Generator Engine States
-  const [resumeData, setResumeData] = useState({
-    summary: "",
-    experience: "",
-    projects: "",
-    hobbies: "",
-  });
+  const [formData, setFormData] = useState({ fullName: "", phoneNumber: "", cgpa: "", rollNumber: "", activeBacklogs: "0", departmentId: "" });
+  const [resumeData, setResumeData] = useState({ summary: "", experience: "", projects: "", hobbies: "" });
   const [isResumeConfigured, setIsResumeConfigured] = useState(false);
 
-  const isProfileComplete = Boolean(
-    profileData.branch && profileData.rollNumber && profileData.phoneNumber
-  );
+  const isProfileComplete = Boolean(profileData.branch && profileData.rollNumber && profileData.phoneNumber);
 
-  // 10-Minute Security Session Activity Monitor Loop
   useEffect(() => {
     let timeoutId;
     const resetTimer = () => {
@@ -138,10 +120,8 @@ const Dashboard = () => {
     };
   }, [logout]);
 
-  // Ref guard to block overlapping execution loops
   const fetchingRef = useRef(false);
 
-  // Primary Workspace Context Loader Function Block
   const fetchWorkspaceData = useCallback(async () => {
     if (fetchingRef.current) return;
     fetchingRef.current = true;
@@ -187,24 +167,19 @@ const Dashboard = () => {
     fetchWorkspaceData();
   }, [fetchWorkspaceData]);
 
-  // Student Attendance Ledger Data Load Hook Block
   useEffect(() => {
     if (activeTab === "attendance" && profileData.rollNumber) {
       const fetchStudentAttendance = async () => {
         try {
           setAttendanceLoading(true);
           const res = await API.get(`/attendance/student/${profileData.rollNumber}`, {
-            params: {
-              rollNumber: profileData.rollNumber,
-              student_roll: profileData.rollNumber
-            }
+            params: { rollNumber: profileData.rollNumber, student_roll: profileData.rollNumber }
           });
           if (res.data && res.data.success) {
-            const historyData = res.data.history || res.data.data || [];
-            setAttendanceHistory(historyData);
+            setAttendanceHistory(res.data.history || res.data.data || []);
           }
         } catch (err) {
-          console.error("Error reading personal attendance pipeline data matrix:", err);
+          console.error("Error reading attendance matrix:", err);
         } finally {
           setAttendanceLoading(false);
         }
@@ -236,49 +211,11 @@ const Dashboard = () => {
     }
   };
 
-  const triggerResumePrint = () => {
-    window.print();
-  };
-
-  const handleGenerateCertificatePDF = (skillItem) => {
-    const printWindow = window.open("", "_blank", "width=900,height=650");
-    const certificateHTML = `
-        <html>
-          <head>
-            <title>Professional Competency Verification Certificate</title>
-            <style>
-              body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #fff; color: #1e293b; text-align: center; padding: 3rem; }
-              .cert-border { border: 8px double #10b981; padding: 2.5rem; border-radius: 4px; max-width: 800px; margin: 0 auto; }
-              h1 { font-size: 2.75rem; color: #0f172a; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 1px; }
-              .recipient-name { font-size: 2.25rem; font-weight: 800; color: #10b981; margin: 2rem 0; border-bottom: 2px solid #e2e8f0; display: inline-block; padding-bottom: 0.5rem; min-width: 400px; }
-              .cert-text { font-size: 1.15rem; line-height: 1.6; color: #334155; margin: 1.5rem auto; max-width: 600px; }
-              .meta-row { display: flex; justify-content: space-between; margin-top: 3.5rem; padding-top: 1.5rem; border-top: 1px dashed #cbd5e1; font-size: 0.95rem; color: #64748b; }
-            </style>
-          </head>
-          <body>
-            <div class="cert-border">
-              <h3>TRAINING & PLACEMENT CELL</h3>
-              <h1>Certificate of Proficiency</h1>
-              <div class="recipient-name">${profileData.fullName || "Verified Student User"}</div>
-              <p class="cert-text">has successfully demonstrated technical proficiency mastery within the framework taxonomy of</p>
-              <h2 style="font-size: 1.8rem; color: #0f172a; margin: 1rem 0;">${skillItem.skill_name}</h2>
-              <p class="cert-text">achieving a validation index performance metric rating of <strong>${skillItem.rating}%</strong>.</p>
-              <div class="meta-row">
-                <div><strong>Student Roll:</strong> ${profileData.rollNumber}</div>
-                <div><strong>Issue Verification Date:</strong> ${new Date().toLocaleDateString()}</div>
-              </div>
-            </div>
-            <script>window.onload = function() { window.print(); setTimeout(function() { window.close(); }, 500); }</script>
-          </body>
-        </html>
-      `;
-    printWindow.document.write(certificateHTML);
-    printWindow.document.close();
-  };
+  const triggerResumePrint = () => window.print();
 
   if (loading || rightsLoading) {
     return (
-      <div className="portal-container" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ height: "100vh", width: "100vw", backgroundColor: "var(--bg-primary)", color: "var(--text-main)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "500" }}>
         Syncing Portal Context & RBAC Permissions...
       </div>
     );
@@ -286,354 +223,250 @@ const Dashboard = () => {
 
   if (!userRights || userRights.length === 0) {
     return (
-      <div className="portal-container" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100vh", color: "#fff", background: "#0b0f19" }}>
-        <h2>no rights assigned to user</h2>
-        <button onClick={logout} className="submit-btn" style={{ marginTop: "1rem", width: "150px", background: "#ef4444" }}>Log Out</button>
+      <div style={{ height: "100vh", width: "100vw", backgroundColor: "var(--bg-primary)", color: "var(--text-main)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+        <h2 style={{ fontSize: "1.1rem", fontWeight: "600", marginBottom: "0.75rem" }}>No rights assigned to user</h2>
+        <button onClick={logout} style={{ padding: "0.5rem 1.25rem", backgroundColor: "#ef4444", borderRadius: "0.75rem", color: "#fff", border: "none", cursor: "pointer" }}>Log Out</button>
       </div>
     );
   }
 
   return (
-    <div className="dashboard-wrapper" style={{ display: "flex", width: "100vw", maxWidth: "100vw", overflowX: "hidden", minHeight: "100vh" }}>
+    <div style={{ display: "flex", width: "100vw", height: "100vh", overflow: "hidden", backgroundColor: "var(--bg-primary)", color: "var(--text-main)" }}>
       
-      {/* DYNAMIC SIDEBAR NAVIGATION PANE */}
-      <aside className="workspace-sidebar" style={{ flexShrink: 0 }}>
-        <div className="sidebar-main-nav">
-          <div className="sidebar-brand">TP PORTAL</div>
-          {menus.map((menu) => (
-            <div
-              key={menu.key}
-              onClick={() => setActiveTab(menu.key)}
-              className={`sidebar-link ${activeTab === menu.key ? "active" : ""}`}
+      <style>{`
+        @keyframes brandBlink {
+          0% { opacity: 1; transform: scale(1); box-shadow: 0 0 8px var(--accent-color, #10b981); }
+          50% { opacity: 0.4; transform: scale(0.9); box-shadow: 0 0 2px var(--accent-color, #10b981); }
+          100% { opacity: 1; transform: scale(1); box-shadow: 0 0 8px var(--accent-color, #10b981); }
+        }
+        .brand-neon-dot {
+          width: 8px;
+          height: 8px;
+          background-color: var(--accent-color, #10b981);
+          border-radius: 50%;
+          display: inline-block;
+          animation: brandBlink 1.5s infinite ease-in-out;
+        }
+      `}</style>
+
+      {/* FLOATING MODERN SIDEBAR NAVIGATION PANE */}
+      <aside style={{
+        height: "96vh",
+        margin: "2vh 0 2vh 0.75rem",
+        backgroundColor: "var(--bg-card)",
+        borderRadius: "1.5rem",
+        border: "1px solid var(--border-color)",
+        boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.2)",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
+        width: isExpanded ? "260px" : "80px",
+        transition: "width 0.3s ease-in-out",
+        flexShrink: 0,
+        zIndex: 30,
+        overflow: "hidden"
+      }}>
+        <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
+          
+          {/* Top Header with Blinking Dot & Right-Aligned Toggle Button */}
+          <div style={{ padding: "1rem", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid var(--border-color)" }}>
+            {isExpanded ? (
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                <span className="brand-neon-dot"></span>
+                <span style={{ fontWeight: "800", letterSpacing: "0.1em", color: "var(--text-title)", fontSize: "1rem" }}>
+                  TP PORTAL
+                </span>
+              </div>
+            ) : (
+              <div style={{ display: "flex", justifyContent: "center", width: "100%" }}>
+                <span className="brand-neon-dot" title="TP Portal Active"></span>
+              </div>
+            )}
+            
+            {/* Toggle Button pushed cleanly to the right */}
+            <button 
+              onClick={() => setIsExpanded(!isExpanded)} 
+              style={{ background: "var(--tab-bg)", border: "none", color: "var(--text-sub)", cursor: "pointer", padding: "0.4rem", borderRadius: "0.6rem", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}
+              title="Toggle Sidebar"
             >
-              {menu.label}
-            </div>
-          ))}
-          <div className="sidebar-link" style={{ color: "red", cursor: "pointer" }} onClick={logout}>
-            Log Out
+              <Menu size={18} />
+            </button>
           </div>
+
+          {/* Navigation Links Scrollable Area */}
+          <nav style={{ flex: 1, overflowY: "auto", padding: "1rem 0.75rem", display: "flex", flexDirection: "column", gap: "0.35rem" }} className="custom-scrollbar">
+            {menus.map((menu) => {
+              const isActive = activeTab === menu.key;
+              return (
+                <button
+                  key={menu.key}
+                  onClick={() => setActiveTab(menu.key)}
+                  title={!isExpanded ? menu.label : ""}
+                  style={{
+                    width: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.85rem",
+                    padding: "0.75rem 0.85rem",
+                    borderRadius: "1rem",
+                    fontSize: "0.75rem",
+                    fontWeight: "600",
+                    border: "none",
+                    cursor: "pointer",
+                    textAlign: "left",
+                    background: isActive ? "var(--accent-color)" : "transparent",
+                    color: isActive ? "#ffffff" : "var(--text-sub)",
+                    boxShadow: isActive ? "0 10px 15px -3px rgba(0, 0, 0, 0.2)" : "none",
+                    transition: "all 0.2s ease"
+                  }}
+                >
+                  <span style={{ flexShrink: 0, color: isActive ? "#ffffff" : "var(--accent-color)" }}>
+                    {getMenuIcon(menu.key)}
+                  </span>
+                  {isExpanded && <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontWeight: "900", fontSize: "0.9rem" }}>{menu.label}</span>}
+                </button>
+              );
+            })}
+          </nav>
+
+          {/* Bottom Section: Logout & User Profile Component */}
+          <div style={{ padding: "0.75rem", borderTop: "1px solid var(--border-color)", backgroundColor: "var(--bg-card)" }}>
+            <button
+              onClick={logout}
+              title={!isExpanded ? "Log Out" : ""}
+              style={{
+                width: "100%",
+                display: "flex",
+                alignItems: "center",
+                gap: "0.85rem",
+                padding: "0.6rem 0.85rem",
+                borderRadius: "0.75rem",
+                fontSize: "0.75rem",
+                fontWeight: "600",
+                color: "#f87171",
+                backgroundColor: "transparent",
+                border: "none",
+                cursor: "pointer",
+                marginBottom: "0.5rem",
+                justifyContent: !isExpanded ? "center" : "flex-start"
+              }}
+            >
+              <LogOut size={18} style={{ flexShrink: 0 }} />
+              {isExpanded && <span>Log Out</span>}
+            </button>
+
+            {/* Separate UserProfile Component */}
+            <UserProfile isExpanded={isExpanded} currentUser={user} />
+          </div>
+
         </div>
       </aside>
 
-      {/* DYNAMIC CONTENT ROUTER */}
-      <main className="workspace-content-frame" style={{ display: "flex", flexDirection: "column", flex: 1, width: "100%", overflowX: "hidden", boxSizing: "border-box", padding: "1.5rem" }}>
+      {/* MAIN DYNAMIC CONTENT ROUTER AREA */}
+      <main style={{ flex: 1, height: "100vh", overflowY: "auto", padding: "2rem", boxSizing: "border-box" }}>
         
-        {/* PROFILE TAB VIEW */}
         {activeTab === "profile" && userRights.includes("NAV_PROFILE") ? (
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "80vh", width: "100%" }}>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "85vh", width: "100%" }}>
             <div style={{ width: "100%", maxWidth: "550px" }}>
-              <h2 style={{ textAlign: "center", marginBottom: "1.5rem", fontWeight: "800" }}>Update Profile Details</h2>
-              <form onSubmit={handleProfileSubmit} className="glass-auth-card" style={{ width: "100%" }}>
-                <div className="form-group">
-                  <label className="form-label">Full Name</label>
-                  <input type="text" value={formData.fullName} onChange={(e) => setFormData({ ...formData, fullName: e.target.value })} className="form-input" required />
+              <h2 style={{ fontSize: "1.5rem", fontWeight: "900", textAlign: "center", marginBottom: "1.5rem", color: "var(--text-title)" }}>Update Profile Details</h2>
+              <form onSubmit={handleProfileSubmit} style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-color)", padding: "2rem", borderRadius: "1.5rem", boxShadow: "0 20px 25px -5px var(--shadow-card)" }}>
+                <div style={{ marginBottom: "1rem" }}>
+                  <label style={{ display: "block", fontSize: "0.7rem", fontWeight: "700", color: "var(--text-sub)", marginBottom: "0.5rem", textTransform: "uppercase" }}>Full Name</label>
+                  <input type="text" value={formData.fullName} onChange={(e) => setFormData({ ...formData, fullName: e.target.value })} style={{ width: "100%", padding: "0.75rem 1rem", backgroundColor: "var(--input-bg)", border: "1px solid var(--border-color)", borderRadius: "0.75rem", fontSize: "0.85rem", color: "var(--text-title)", outline: "none" }} required />
                 </div>
-                <div className="form-group">
-                  <label className="form-label">Department Stream Branch</label>
-                  <select value={formData.departmentId} onChange={(e) => setFormData({ ...formData, departmentId: e.target.value })} className="form-input" required>
-                    <option value="">Choose your registered department...</option>
+                <div style={{ marginBottom: "1rem" }}>
+                  <label style={{ display: "block", fontSize: "0.7rem", fontWeight: "700", color: "var(--text-sub)", marginBottom: "0.5rem", textTransform: "uppercase" }}>Department Stream Branch</label>
+                  <select value={formData.departmentId} onChange={(e) => setFormData({ ...formData, departmentId: e.target.value })} style={{ width: "100%", padding: "0.75rem 1rem", backgroundColor: "var(--input-bg)", border: "1px solid var(--border-color)", borderRadius: "0.75rem", fontSize: "0.85rem", color: "var(--text-title)", outline: "none" }} required>
+                    <option value="">Choose department...</option>
                     {departments.map((d) => (
                       <option key={d.id} value={d.id}>[{d.dept_name}] {d.dept_full_name}</option>
                     ))}
                   </select>
                 </div>
-                <div className="form-row-double">
-                  <div className="form-group">
-                    <label className="form-label">Roll Number</label>
-                    <input type="text" value={formData.rollNumber} onChange={(e) => setFormData({ ...formData, rollNumber: e.target.value })} className="form-input" required disabled={isProfileComplete} />
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginBottom: "1rem" }}>
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.7rem", fontWeight: "700", color: "var(--text-sub)", marginBottom: "0.5rem", textTransform: "uppercase" }}>Roll Number</label>
+                    <input type="text" value={formData.rollNumber} onChange={(e) => setFormData({ ...formData, rollNumber: e.target.value })} style={{ width: "100%", padding: "0.75rem 1rem", backgroundColor: "var(--input-bg)", border: "1px solid var(--border-color)", borderRadius: "0.75rem", fontSize: "0.85rem", color: "var(--text-title)", opacity: isProfileComplete ? 0.6 : 1, outline: "none" }} required disabled={isProfileComplete} />
                   </div>
-                  <div className="form-group">
-                    <label className="form-label">Mobile Phone</label>
-                    <input type="tel" value={formData.phoneNumber} onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })} className="form-input" required />
-                  </div>
-                </div>
-                <div className="form-row-double">
-                  <div className="form-group">
-                    <label className="form-label">Aggregate CGPA</label>
-                    <input type="number" step="0.01" min="0" max="10" value={formData.cgpa} onChange={(e) => setFormData({ ...formData, cgpa: e.target.value })} className="form-input" required />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Active Backlogs</label>
-                    <input type="number" min="0" value={formData.activeBacklogs} onChange={(e) => setFormData({ ...formData, activeBacklogs: e.target.value })} className="form-input" required />
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.7rem", fontWeight: "700", color: "var(--text-sub)", marginBottom: "0.5rem", textTransform: "uppercase" }}>Mobile Phone</label>
+                    <input type="tel" value={formData.phoneNumber} onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })} style={{ width: "100%", padding: "0.75rem 1rem", backgroundColor: "var(--input-bg)", border: "1px solid var(--border-color)", borderRadius: "0.75rem", fontSize: "0.85rem", color: "var(--text-title)", outline: "none" }} required />
                   </div>
                 </div>
-                <button type="submit" disabled={submitLoading} className="submit-btn">
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginBottom: "1.5rem" }}>
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.7rem", fontWeight: "700", color: "var(--text-sub)", marginBottom: "0.5rem", textTransform: "uppercase" }}>Aggregate CGPA</label>
+                    <input type="number" step="0.01" min="0" max="10" value={formData.cgpa} onChange={(e) => setFormData({ ...formData, cgpa: e.target.value })} style={{ width: "100%", padding: "0.75rem 1rem", backgroundColor: "var(--input-bg)", border: "1px solid var(--border-color)", borderRadius: "0.75rem", fontSize: "0.85rem", color: "var(--text-title)", outline: "none" }} required />
+                  </div>
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.7rem", fontWeight: "700", color: "var(--text-sub)", marginBottom: "0.5rem", textTransform: "uppercase" }}>Active Backlogs</label>
+                    <input type="number" min="0" value={formData.activeBacklogs} onChange={(e) => setFormData({ ...formData, activeBacklogs: e.target.value })} style={{ width: "100%", padding: "0.75rem 1rem", backgroundColor: "var(--input-bg)", border: "1px solid var(--border-color)", borderRadius: "0.75rem", fontSize: "0.85rem", color: "var(--text-title)", outline: "none" }} required />
+                  </div>
+                </div>
+                <button type="submit" disabled={submitLoading} style={{ width: "100%", padding: "0.85rem", background: "var(--accent-color)", color: "#fff", fontWeight: "700", fontSize: "0.85rem", borderRadius: "0.75rem", border: "none", cursor: "pointer", boxShadow: "0 10px 15px -3px var(--accent-glow)" }}>
                   {submitLoading ? "Saving..." : "Sync Workspace Account"}
                 </button>
               </form>
             </div>
           </div>
         ) : activeTab === "metrics" && userRights.includes("NAV_METRICS") ? (
-          
-          /* DASHBOARD METRICS ANALYTICS PANEL */
-          <div style={{ width: "100%", maxWidth: "100%" }}>
-            <h1 style={{ fontSize: "1.6rem", fontWeight: "800", margin: 0 }}>
-              Portal Workspace Dashboard
-            </h1>
-            
-            {profileData.branch && (
-              <p style={{ color: "var(--text-sub)", fontSize: "0.85rem" }}>Stream Branch: {profileData.branch}</p>
-            )}
-
-            {userRole.toLowerCase().includes("student") ? (
-              <>
-                <div className="metric-cards-row" style={{ marginTop: "1.5rem", marginBottom: "2rem" }}>
-                  <div className="metric-panel-card" style={{ 
-                    borderLeft: `4px solid ${
-                      profileData.verificationStatus === 'Approved' || profileData.verificationStatus === 'Clearance Verified' ? '#10b981' : 
-                      profileData.verificationStatus === 'Rejected' ? '#ef4444' : '#f59e0b'
-                    }` 
-                  }}>
-                    <span style={{ fontSize: "0.7rem", color: "var(--text-sub)" }}>VERIFICATION AUDIT</span>
-                    <h3 style={{ 
-                      fontSize: "1.25rem", 
-                      marginTop: "0.5rem", 
-                      fontWeight: "700",
-                      color: (profileData.verificationStatus === "Approved" || profileData.verificationStatus === "Clearance Verified") ? "#10b981" : 
-                             profileData.verificationStatus === "Rejected" ? "#ef4444" : "#f59e0b" 
-                    }}>
-                      {profileData.verificationStatus === 'Approved' || profileData.verificationStatus === 'Clearance Verified' ? 'Clearance Verified ✓' :
-                       profileData.verificationStatus === 'Rejected' ? 'Clearance Action Flagged ✖' : 
-                       'Pending Coordinator Clearance ⏳'}
-                    </h3>
-                  </div>
-                  <div className="metric-panel-card">
-                    <span style={{ fontSize: "0.7rem", color: "var(--text-sub)" }}>VERIFIED CGPA</span>
-                    <h3 style={{ fontSize: "1.8rem", marginTop: "0.5rem" }}>{Number(profileData.cgpa).toFixed(2)}</h3>
-                  </div>
-                  <div className="metric-panel-card">
-                    <span style={{ fontSize: "0.7rem", color: "var(--text-sub)" }}>JOB APPLICATIONS</span>
-                    <h3 style={{ fontSize: "1.8rem", marginTop: "0.5rem" }}>{dashboardMetrics.applications}</h3>
-                  </div>
-                </div>
-
-                <div className="metric-panel-card" style={{ marginTop: "1.5rem" }}>
-                  <h3 style={{ fontSize: "1.1rem", marginBottom: "1rem", fontWeight: "700" }}>Configured Technical Skill Matrices</h3>
-                  {skillsList.length === 0 ? (
-                    <p style={{ color: "var(--text-sub)", fontSize: "0.85rem" }}>No dynamic skills registered yet.</p>
-                  ) : (
-                    <div style={{ display: "grid", gap: "1rem", marginTop: "1rem" }}>
-                      {skillsList.map((s) => (
-                        <div key={s.id} style={{ fontSize: "0.875rem" }}>
-                          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.25rem" }}>
-                            <span style={{ fontWeight: "600" }}>{s.skill_name}</span>
-                            <span style={{ color: "var(--accent-color)", fontWeight: "700" }}>{s.rating || 70}%</span>
-                          </div>
-                          <div style={{ width: "100%", height: "8px", backgroundColor: "rgba(255,255,255,0.08)", borderRadius: "4px", overflow: "hidden" }}>
-                            <div style={{ width: `${s.rating || 70}%`, height: "100%", backgroundColor: "var(--accent-color)", borderRadius: "4px" }}></div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </>
-            ) : (
-              /* PLACEMENT TEAM / OFFICERS / ADMINS OVERVIEW PANEL */
-              <div style={{ marginTop: "1.5rem" }}>
-                <div className="metric-cards-row" style={{ marginBottom: "2rem" }}>
-                  <div className="metric-panel-card" style={{ borderLeft: "4px solid var(--accent-color, #a855f7)" }}>
-                    <span style={{ fontSize: "0.7rem", color: "var(--text-sub)" }}>SYSTEM CLEARANCE LEVEL</span>
-                    <h3 style={{ fontSize: "1.4rem", marginTop: "0.5rem", color: "#fff" }}>Authorized Operational Node</h3>
-                  </div>
-                  <div className="metric-panel-card">
-                    <span style={{ fontSize: "0.7rem", color: "var(--text-sub)" }}>PORTAL STATUS</span>
-                    <h3 style={{ fontSize: "1.4rem", marginTop: "0.5rem", color: "#10b981" }}>Operational Active</h3>
-                  </div>
-                </div>
-
-                <div className="skill-management-card" style={{ padding: "2rem", background: "#121620", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.06)" }}>
-                  <h3 style={{ margin: "0 0 0.5rem 0", color: "#fff", fontSize: "1.2rem", fontWeight: "700" }}>
-                    Administrative Control Workspace Desk
-                  </h3>
-                  <p style={{ color: "#94a3b8", fontSize: "0.875rem", margin: 0, lineHeight: "1.5" }}>
-                    Select an option on the left navigation pane to manage placements, attendance desks, and student verifications.
-                  </p>
-                </div>
+          <div style={{ width: "100%" }}>
+            <h1 style={{ fontSize: "1.6rem", fontWeight: "900", color: "var(--text-title)", margin: 0 }}>Portal Workspace Dashboard</h1>
+            {profileData.branch && <p style={{ fontSize: "0.8rem", color: "var(--text-sub)", marginTop: "0.25rem" }}>Stream Branch: {profileData.branch}</p>}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1.25rem", marginTop: "1.5rem" }}>
+              <div style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-color)", padding: "1.5rem", borderRadius: "1.5rem" }}>
+                <span style={{ fontSize: "0.65rem", fontWeight: "700", color: "var(--text-sub)", letterSpacing: "0.05em" }}>VERIFIED CGPA</span>
+                <h3 style={{ fontSize: "2rem", fontWeight: "900", color: "var(--text-title)", marginTop: "0.5rem" }}>{Number(profileData.cgpa).toFixed(2)}</h3>
               </div>
-            )}
+              <div style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-color)", padding: "1.5rem", borderRadius: "1.5rem" }}>
+                <span style={{ fontSize: "0.65rem", fontWeight: "700", color: "var(--text-sub)", letterSpacing: "0.05em" }}>JOB APPLICATIONS</span>
+                <h3 style={{ fontSize: "2rem", fontWeight: "900", color: "var(--text-title)", marginTop: "0.5rem" }}>{dashboardMetrics.applications}</h3>
+              </div>
+            </div>
           </div>
-
         ) : activeTab === "skills" && userRights.includes("NAV_SKILLS") ? (
           <div style={{ width: "100%" }}>
             {isExamActive ? (
-              <SkillsAssessment
-                studentRoll={profileData.rollNumber}
-                studentEmail={profileData.email}
-                skillName={selectedActiveSkillName}
-                onAssessmentClose={() => {
-                  setIsExamActive(false);
-                  fetchWorkspaceData();
-                }}
-              />
+              <SkillsAssessment studentRoll={profileData.rollNumber} studentEmail={profileData.email} skillName={selectedActiveSkillName} onAssessmentClose={() => { setIsExamActive(false); fetchWorkspaceData(); }} />
             ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
-                <SkillManagement studentRoll={profileData.rollNumber} activeSkillsList={skillsList} onSkillListUpdated={fetchWorkspaceData} />
-                <div className="metric-panel-card">
-                  <h3 style={{ fontSize: "1.1rem", marginBottom: "1rem", fontWeight: "700", color: "#fff" }}>Your Tracked Competencies</h3>
-                  <div style={{ overflowX: "auto" }}>
-                    <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                      <thead>
-                        <tr style={{ borderBottom: "1px solid var(--border-color)", color: "var(--text-sub)", fontSize: "0.8rem" }}>
-                          <th style={{ padding: "0.75rem", textAlign: "left" }}>Skill Name</th>
-                          <th style={{ padding: "0.75rem", textAlign: "left" }}>Audited Score</th>
-                          <th style={{ padding: "0.75rem", textAlign: "left" }}>Status</th>
-                          <th style={{ padding: "0.75rem", textAlign: "right" }}>Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {skillsList.map((s) => (
-                          <tr key={s.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.02)" }}>
-                            <td style={{ padding: "0.75rem", color: "#fff", fontWeight: "600" }}>{s.skill_name}</td>
-                            <td style={{ padding: "0.75rem", color: "var(--accent-color)", fontWeight: "700" }}>{s.assessment_status === "Verified" ? `${s.rating}%` : "0%"}</td>
-                            <td style={{ padding: "0.75rem" }}>
-                              <span style={{
-                                fontSize: "0.75rem", padding: "0.25rem 0.5rem", borderRadius: "4px",
-                                background: s.assessment_status === "Verified" ? "rgba(16,185,129,0.1)" : s.assessment_status === "Malpractice" ? "rgba(239,68,68,0.15)" : "rgba(245,158,11,0.1)",
-                                color: s.assessment_status === "Verified" ? "#10b981" : s.assessment_status === "Malpractice" ? "#ef4444" : "#f59e0b"
-                              }}>{s.assessment_status || "Not Initiated"}</span>
-                            </td>
-                            <td style={{ padding: "0.75rem", textAlign: "right" }}>
-                              <div style={{ display: "inline-flex", gap: "0.5rem" }}>
-                                {s.assessment_status === "Verified" && s.rating >= 60 && (
-                                  <button onClick={() => handleGenerateCertificatePDF(s)} className="submit-btn" style={{ padding: "0.4rem 0.85rem", fontSize: "0.75rem", background: "#10b981", width: "auto", margin: 0 }}>Download Cert</button>
-                                )}
-                                {s.assessment_status === "Malpractice" ? (
-                                  <button onClick={() => showPopup({ title: "Terminal Lockout", message: "Locked via proctor infraction parameters.", confirmText: "Close" })} className="submit-btn" style={{ padding: "0.4rem 0.85rem", fontSize: "0.75rem", background: "#ef4444", width: "auto", margin: 0 }}>Locked</button>
-                                ) : (
-                                  s.assessment_status !== "Verified" && (
-                                    <button onClick={() => { setSelectedActiveSkillName(s.skill_name); setIsExamActive(true); }} className="submit-btn" style={{ padding: "0.4rem 0.85rem", fontSize: "0.75rem", background: "#fff", color: "#000", width: "auto", margin: 0 }}>Take Assessment</button>
-                                  )
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
+              <SkillManagement studentRoll={profileData.rollNumber} activeSkillsList={skillsList} onSkillListUpdated={fetchWorkspaceData} />
             )}
           </div>
-
         ) : activeTab === "calendar" && userRights.includes("NAV_CALENDAR") ? (
-          <div style={{ width: "100%" }}>
-            <DriveCalendar studentCgpa={profileData?.cgpa || 0.00} studentBranch={profileData?.branch || "CSE"} />
-          </div>
-
+          <DriveCalendar studentCgpa={profileData?.cgpa || 0.00} studentBranch={profileData?.branch || "CSE"} />
         ) : activeTab === "resume" && userRights.includes("NAV_RESUME") ? (
           <div style={{ width: "100%" }}>
             {!isResumeConfigured ? (
               <div style={{ maxWidth: "600px" }}>
-                <h1 style={{ fontSize: "1.5rem", fontWeight: "800", marginBottom: "0.5rem" }}>Compile Dynamic Resume Payload</h1>
-                <div className="glass-auth-card">
-                  <div className="form-group">
-                    <label className="form-label">Professional Summary Statement</label>
-                    <textarea value={resumeData.summary} onChange={(e) => setResumeData({ ...resumeData, summary: e.target.value })} className="form-input" rows="3" placeholder="Summary particulars..."></textarea>
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Academic Projects Details</label>
-                    <textarea value={resumeData.projects} onChange={(e) => setResumeData({ ...resumeData, projects: e.target.value })} className="form-input" rows="3" placeholder="Projects description..."></textarea>
-                  </div>
-                  <button onClick={() => setIsResumeConfigured(true)} className="submit-btn">Compile Preview Canvas</button>
+                <h1 style={{ fontSize: "1.25rem", fontWeight: "800", color: "var(--text-title)", marginBottom: "1rem" }}>Compile Dynamic Resume Payload</h1>
+                <div style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-color)", padding: "1.5rem", borderRadius: "1.5rem" }}>
+                  <label style={{ display: "block", fontSize: "0.7rem", fontWeight: "700", color: "var(--text-sub)", marginBottom: "0.5rem" }}>Professional Summary Statement</label>
+                  <textarea value={resumeData.summary} onChange={(e) => setResumeData({ ...resumeData, summary: e.target.value })} style={{ width: "100%", padding: "0.75rem", backgroundColor: "var(--input-bg)", border: "1px solid var(--border-color)", borderRadius: "0.75rem", color: "var(--text-title)", marginBottom: "1rem" }} rows="3"></textarea>
+                  <button onClick={() => setIsResumeConfigured(true)} style={{ padding: "0.65rem 1.25rem", backgroundColor: "var(--accent-color)", color: "#fff", fontWeight: "700", fontSize: "0.75rem", borderRadius: "0.75rem", border: "none", cursor: "pointer" }}>Compile Preview Canvas</button>
                 </div>
               </div>
             ) : (
               <div>
-                <div style={{ display: "flex", gap: "1rem", marginBottom: "1.5rem" }}>
-                  <button onClick={triggerResumePrint} className="submit-btn" style={{ width: "200px", margin: 0 }}>Download / Print CV</button>
-                  <button onClick={() => setIsResumeConfigured(false)} className="submit-btn" style={{ width: "200px", margin: 0, backgroundColor: "rgba(255,255,255,0.1)" }}>Edit Details</button>
-                </div>
-                <div id="printable-cv-frame" ref={resumePrintRef} style={{ background: "#fff", color: "#000", padding: "2.5rem", borderRadius: "4px", fontFamily: "serif" }}>
-                  <h2 style={{ textTransform: "uppercase", margin: 0 }}>{profileData.fullName}</h2>
-                  <p>Email: {profileData.email} | Phone: {profileData.phoneNumber} | Roll No: {profileData.rollNumber}</p>
-                  <hr/>
-                  <h4>Professional Summary</h4>
-                  <p>{resumeData.summary}</p>
-                  <h4>Projects undertaken</h4>
-                  <p>{resumeData.projects}</p>
+                <button onClick={triggerResumePrint} style={{ padding: "0.65rem 1.25rem", backgroundColor: "var(--accent-color)", color: "#fff", fontWeight: "700", fontSize: "0.75rem", borderRadius: "0.75rem", border: "none", cursor: "pointer", marginBottom: "1rem" }}>Download / Print CV</button>
+                <div id="printable-cv-frame" ref={resumePrintRef} style={{ backgroundColor: "#fff", color: "#000", padding: "2rem", borderRadius: "0.75rem" }}>
+                  <h2 style={{ fontSize: "1.25rem", fontWeight: "bold", textTransform: "uppercase" }}>{profileData.fullName}</h2>
+                  <p style={{ fontSize: "0.75rem", color: "#555" }}>Email: {profileData.email} | Phone: {profileData.phoneNumber}</p>
                 </div>
               </div>
             )}
           </div>
-
         ) : activeTab === "manage_attendance" && userRights.includes("NAV_MANAGE_ATTENDANCE") ? (
-          <div style={{ width: "100%", boxSizing: "border-box" }}>
-            <AttendanceWorkspace isReadOnlyMode={false} />
-          </div>
-
+          <AttendanceWorkspace isReadOnlyMode={false} />
         ) : activeTab === "view_attendance_desk" && userRights.includes("NAV_VIEW_ATTENDANCE_DESK") ? (
-          <div style={{ width: "100%", boxSizing: "border-box" }}>
-            <AttendanceWorkspace isReadOnlyMode={true} />
-          </div>
-
-        ) : activeTab === "attendance" && userRights.includes("NAV_ATTENDANCE_HISTORY") ? (
-          <div className="metric-panel-card" style={{ width: "100%", boxSizing: "border-box" }}>
-            <h2 style={{ fontSize: "1.25rem", fontWeight: "700", marginBottom: "0.5rem", color: "#fff" }}>
-              Your Training Attendance Summary Ledger
-            </h2>
-            <p style={{ color: "var(--text-sub)", fontSize: "0.85rem", marginBottom: "1rem" }}>
-              Logged training session records for Roll Number: <strong>{profileData.rollNumber}</strong>
-            </p>
-
-            {attendanceLoading ? (
-              <div style={{ color: "var(--text-sub)", fontSize: "0.9rem" }}>Fetching ledger fields...</div>
-            ) : attendanceHistory.length === 0 ? (
-              <div style={{ padding: "2rem", background: "rgba(255,255,255,0.01)", border: "1px dashed rgba(255,255,255,0.06)", borderRadius: "8px", textAlign: "center", color: "#777" }}>
-                No training session data rows compiled for this student configuration node yet.
-              </div>
-            ) : (
-              <div style={{ overflowX: "auto", width: "100%" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                  <thead>
-                    <tr style={{ borderBottom: "1px solid var(--border-color)", color: "var(--text-sub)", fontSize: "0.8rem" }}>
-                      <th style={{ padding: "0.75rem", textAlign: "left" }}>Date</th>
-                      <th style={{ padding: "0.75rem", textAlign: "left" }}>Session Slot</th>
-                      <th style={{ padding: "0.75rem", textAlign: "left" }}>Topic Context</th>
-                      <th style={{ padding: "0.75rem", textAlign: "center" }}>Clearance Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {attendanceHistory.map((log) => (
-                      <tr key={log.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.02)", fontSize: "0.9rem" }}>
-                        <td style={{ padding: "0.75rem", color: "#fff", fontWeight: "600" }}>{new Date(log.session_date).toLocaleDateString()}</td>
-                        <td style={{ padding: "0.75rem", color: "var(--text-sub)" }}>{log.session_slot?.replace("_", " ")}</td>
-                        <td style={{ padding: "0.75rem", color: "#fff" }}>{log.topic || "General Technical Alignment Training"}</td>
-                        <td style={{ padding: "0.75rem", textAlign: "center" }}>
-                          <span style={{
-                            fontSize: "0.75rem", padding: "0.25rem 0.6rem", borderRadius: "4px", fontWeight: "700",
-                            background: log.attendance_status === "Present" ? "rgba(16,185,129,0.1)" : "rgba(239,68,68,0.1)",
-                            color: log.attendance_status === "Present" ? "#10b981" : "#ef4444"
-                          }}>{log.attendance_status}</span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-
+          <AttendanceWorkspace isReadOnlyMode={true} />
         ) : activeTab === "notifications" && userRights.includes("NAV_NOTIFICATIONS") ? (
-          <div style={{ width: "100%", boxSizing: "border-box" }}>
-            <NotificationsWorkspace />
-          </div>
-
+          <NotificationsWorkspace />
         ) : activeTab === "student_verify" && userRights.includes("NAV_STUDENT_VERIFY") ? (
-          <div style={{ width: "100%", boxSizing: "border-box" }}>
-            <StudentVerification />
-          </div>
-
+          <StudentVerification />
         ) : activeTab === "rbac_admin" && userRights.includes("NAV_RBAC_ADMIN") ? (
-          <div style={{ width: "100%", boxSizing: "border-box" }}>
-            <RbacManagement />
-          </div>
-
+          <RbacManagement />
         ) : (
-          <div>
-            <h1>Dashboard Option coming soon...</h1>
-          </div>
+          <div style={{ textAlign: "center", padding: "5rem", color: "var(--text-sub)", fontWeight: "600" }}>Dashboard Option coming soon...</div>
         )}
       </main>
     </div>

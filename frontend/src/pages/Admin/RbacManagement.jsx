@@ -152,16 +152,16 @@ const RbacManagement = () => {
   const filteredRights = (matrix.rights || []).filter(rt => (rt.name || "").toLowerCase().includes(searchTerm.toLowerCase()));
   const filteredUsers = usersList.filter(u => (u.full_name || "").toLowerCase().includes(searchTerm.toLowerCase()) || (u.email || "").toLowerCase().includes(searchTerm.toLowerCase()));
 
-  if (loading) return <div style={{ color: "#fff", padding: "2rem" }}>Loading Admin RBAC Desk...</div>;
+  if (loading) return <div style={{ color: "var(--text-main)", padding: "2rem" }}>Loading Admin RBAC Desk...</div>;
 
   return (
-    <div style={{ padding: "1.5rem", color: "#fff", background: "var(--bg-main, #0b0f19)", minHeight: "100vh", boxSizing: "border-box", width: "100%" }}>
-      <h1 style={{ fontSize: "1.5rem", fontWeight: "800", marginBottom: "0.5rem" }}>Admin Panel: Dynamic RBAC Manager</h1>
-      <p style={{ color: "#94a3b8", fontSize: "0.85rem", marginBottom: "2rem" }}>Manage roles, groups, granular rights, and direct user role assignments live from the database.</p>
+    <div style={{ padding: "1.5rem", color: "var(--text-main)", background: "var(--bg-main)", minHeight: "100vh", boxSizing: "border-box", width: "100%" }}>
+      <h1 style={{ fontSize: "1.5rem", fontWeight: "800", marginBottom: "0.5rem", color: "var(--text-main)" }}>Admin Panel: Dynamic RBAC Manager</h1>
+      <p style={{ color: "var(--text-sub)", fontSize: "0.85rem", marginBottom: "2rem" }}>Manage roles, groups, granular rights, and direct user role assignments live from the database.</p>
 
       {/* Creation Section */}
-      <div style={{ background: "var(--card-bg, #121620)", padding: "1.5rem", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.08)", marginBottom: "2rem" }}>
-        <h3 style={{ fontSize: "1.1rem", marginBottom: "1rem" }}>Create New Entity</h3>
+      <div style={{ background: "var(--card-bg)", padding: "1.5rem", borderRadius: "1rem", border: "1px solid var(--border-color)", marginBottom: "2rem", boxShadow: "0 10px 15px -3px rgba(0,0,0,0.05)" }}>
+        <h3 style={{ fontSize: "1.1rem", marginBottom: "1rem", color: "var(--text-main)" }}>Create New Entity</h3>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem", alignItems: "center" }}>
           
           {/* Custom Theme-Synced Dropdown Element */}
@@ -169,16 +169,16 @@ const RbacManagement = () => {
             <div 
               onClick={() => setIsTypeDropdownOpen(!isTypeDropdownOpen)}
               style={{ 
-                padding: "0.5rem 0.75rem", 
-                background: "var(--input-bg, #1e293b)", 
-                color: "#fff", 
-                border: "1px solid rgba(255,255,255,0.1)", 
-                borderRadius: "4px", 
+                padding: "0.75rem", 
+                background: "var(--input-bg)", 
+                color: "var(--text-main)", 
+                border: "1px solid var(--border-color)", 
+                borderRadius: "0.75rem", 
                 cursor: "pointer",
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
-                fontSize: "0.9rem"
+                fontSize: "0.85rem"
               }}
             >
               <span>{entityTypesList.find(t => t.value === newType)?.label}</span>
@@ -191,11 +191,12 @@ const RbacManagement = () => {
                 top: "calc(100% + 4px)",
                 left: 0,
                 right: 0,
-                background: "var(--card-bg, #121620)",
-                border: "1px solid rgba(255,255,255,0.1)",
-                borderRadius: "4px",
-                boxShadow: "0 8px 24px rgba(0,0,0,0.6)",
-                zIndex: 99
+                background: "var(--card-bg)",
+                border: "1px solid var(--border-color)",
+                borderRadius: "0.75rem",
+                boxShadow: "0 10px 25px -5px rgba(0,0,0,0.2)",
+                zIndex: 99,
+                overflow: "hidden"
               }}>
                 {entityTypesList.map(t => {
                   const isSelected = newType === t.value;
@@ -206,20 +207,13 @@ const RbacManagement = () => {
                         setNewType(t.value);
                         setIsTypeDropdownOpen(false);
                       }}
-                      onMouseEnter={(e) => {
-                        if (!isSelected) e.currentTarget.style.background = "rgba(255,255,255,0.06)";
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!isSelected) e.currentTarget.style.background = "transparent";
-                      }}
                       style={{
                         padding: "0.6rem 0.75rem",
                         cursor: "pointer",
-                        fontSize: "0.9rem",
+                        fontSize: "0.85rem",
                         background: isSelected ? "var(--accent-color)" : "transparent",
-                        color: "#fff",
-                        fontWeight: isSelected ? "bold" : "normal",
-                        transition: "background 0.15s ease"
+                        color: isSelected ? "#ffffff" : "var(--text-main)",
+                        fontWeight: isSelected ? "bold" : "normal"
                       }}
                     >
                       {t.label}
@@ -230,31 +224,31 @@ const RbacManagement = () => {
             )}
           </div>
 
-          <input type="text" placeholder="Name / Key..." value={newName} onChange={e => setNewName(e.target.value)} style={{ padding: "0.5rem", background: "var(--input-bg, #1e293b)", color: "#fff", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "4px" }} />
-          <input type="text" placeholder="Description" value={newDesc} onChange={e => setNewDesc(e.target.value)} style={{ padding: "0.5rem", background: "var(--input-bg, #1e293b)", color: "#fff", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "4px" }} />
-          <button onClick={handleCreateEntity} style={{ background: "var(--accent-color, #10b981)", color: "#fff", padding: "0.5rem 1rem", border: "none", borderRadius: "4px", cursor: "pointer", fontWeight: "bold" }}>Create & Save</button>
+          <input type="text" placeholder="Name / Key..." value={newName} onChange={e => setNewName(e.target.value)} style={{ padding: "0.75rem", background: "var(--input-bg)", color: "var(--text-main)", border: "1px solid var(--border-color)", borderRadius: "0.75rem", fontSize: "0.85rem", outline: "none" }} />
+          <input type="text" placeholder="Description" value={newDesc} onChange={e => setNewDesc(e.target.value)} style={{ padding: "0.75rem", background: "var(--input-bg)", color: "var(--text-main)", border: "1px solid var(--border-color)", borderRadius: "0.75rem", fontSize: "0.85rem", outline: "none" }} />
+          <button onClick={handleCreateEntity} style={{ background: "var(--accent-color)", color: "#fff", padding: "0.75rem 1rem", border: "none", borderRadius: "0.75rem", cursor: "pointer", fontWeight: "bold" }}>Create & Save</button>
         </div>
       </div>
 
       {/* Navigation Sub-Tabs */}
-      <div style={{ background: "var(--card-bg, #121620)", padding: "1.5rem", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.08)" }}>
+      <div style={{ background: "var(--card-bg)", padding: "1.5rem", borderRadius: "1rem", border: "1px solid var(--border-color)", boxShadow: "0 10px 15px -3px rgba(0,0,0,0.05)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem", flexWrap: "wrap", gap: "1rem" }}>
           <div>
-            <button onClick={() => { setActiveSubTab("roles_groups"); setSelectedPrimaryId(null); }} style={{ padding: "0.5rem 1rem", background: activeSubTab === "roles_groups" ? "var(--accent-color, #3b82f6)" : "#1e293b", color: "#fff", border: "none", borderRadius: "4px", marginRight: "0.75rem", cursor: "pointer" }}>1. Assign Groups to Roles</button>
-            <button onClick={() => { setActiveSubTab("groups_rights"); setSelectedPrimaryId(null); }} style={{ padding: "0.5rem 1rem", background: activeSubTab === "groups_rights" ? "var(--accent-color, #3b82f6)" : "#1e293b", color: "#fff", border: "none", borderRadius: "4px", marginRight: "0.75rem", cursor: "pointer" }}>2. Assign Rights to Groups</button>
-            <button onClick={() => { setActiveSubTab("user_roles"); setSelectedPrimaryId(null); }} style={{ padding: "0.5rem 1rem", background: activeSubTab === "user_roles" ? "var(--accent-color, #3b82f6)" : "#1e293b", color: "#fff", border: "none", borderRadius: "4px", cursor: "pointer" }}>3. Assign Roles to Users</button>
+            <button onClick={() => { setActiveSubTab("roles_groups"); setSelectedPrimaryId(null); }} style={{ padding: "0.5rem 1rem", background: activeSubTab === "roles_groups" ? "var(--accent-color)" : "var(--input-bg)", color: activeSubTab === "roles_groups" ? "#fff" : "var(--text-main)", border: "1px solid var(--border-color)", borderRadius: "0.5rem", marginRight: "0.75rem", cursor: "pointer", fontSize: "0.8rem", fontWeight: "600" }}>1. Assign Groups to Roles</button>
+            <button onClick={() => { setActiveSubTab("groups_rights"); setSelectedPrimaryId(null); }} style={{ padding: "0.5rem 1rem", background: activeSubTab === "groups_rights" ? "var(--accent-color)" : "var(--input-bg)", color: activeSubTab === "groups_rights" ? "#fff" : "var(--text-main)", border: "1px solid var(--border-color)", borderRadius: "0.5rem", marginRight: "0.75rem", cursor: "pointer", fontSize: "0.8rem", fontWeight: "600" }}>2. Assign Rights to Groups</button>
+            <button onClick={() => { setActiveSubTab("user_roles"); setSelectedPrimaryId(null); }} style={{ padding: "0.5rem 1rem", background: activeSubTab === "user_roles" ? "var(--accent-color)" : "var(--input-bg)", color: activeSubTab === "user_roles" ? "#fff" : "var(--text-main)", border: "1px solid var(--border-color)", borderRadius: "0.5rem", cursor: "pointer", fontSize: "0.8rem", fontWeight: "600" }}>3. Assign Roles to Users</button>
           </div>
-          <input type="text" placeholder="Search filter..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} style={{ padding: "0.5rem", background: "var(--input-bg, #1e293b)", color: "#fff", border: "1px solid #334155", borderRadius: "4px", width: "220px" }} />
+          <input type="text" placeholder="Search filter..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} style={{ padding: "0.5rem 0.75rem", background: "var(--input-bg)", color: "var(--text-main)", border: "1px solid var(--border-color)", borderRadius: "0.5rem", width: "220px", fontSize: "0.85rem", outline: "none" }} />
         </div>
 
         {activeSubTab === "user_roles" ? (
           /* TAB 3: Assign Roles directly to Users */
           <div>
-            <h3 style={{ fontSize: "1.1rem", marginBottom: "1rem" }}>User Role Management Directory</h3>
+            <h3 style={{ fontSize: "1.1rem", marginBottom: "1rem", color: "var(--text-main)" }}>User Role Management Directory</h3>
             <div style={{ overflowX: "auto" }}>
               <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
                 <thead>
-                  <tr style={{ borderBottom: "1px solid #334155", color: "#94a3b8", fontSize: "0.85rem" }}>
+                  <tr style={{ borderBottom: "1px solid var(--border-color)", color: "var(--text-sub)", fontSize: "0.8rem" }}>
                     <th style={{ padding: "0.75rem" }}>User Full Name</th>
                     <th style={{ padding: "0.75rem" }}>Email Account</th>
                     <th style={{ padding: "0.75rem" }}>Current Role Assigned</th>
@@ -263,11 +257,11 @@ const RbacManagement = () => {
                 </thead>
                 <tbody>
                   {filteredUsers.map(u => (
-                    <tr key={u.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.03)" }}>
-                      <td style={{ padding: "0.75rem", fontWeight: "600" }}>{u.full_name}</td>
-                      <td style={{ padding: "0.75rem", color: "#94a3b8" }}>{u.email}</td>
+                    <tr key={u.id} style={{ borderBottom: "1px solid var(--border-color)" }}>
+                      <td style={{ padding: "0.75rem", fontWeight: "600", color: "var(--text-main)" }}>{u.full_name}</td>
+                      <td style={{ padding: "0.75rem", color: "var(--text-sub)" }}>{u.email}</td>
                       <td style={{ padding: "0.75rem" }}>
-                        <span style={{ background: "rgba(59, 130, 246, 0.1)", color: "var(--accent-color, #3b82f6)", padding: "0.25rem 0.5rem", borderRadius: "4px", fontSize: "0.8rem", fontWeight: "700" }}>
+                        <span style={{ background: "rgba(99, 102, 241, 0.1)", color: "var(--accent-color)", padding: "0.25rem 0.5rem", borderRadius: "4px", fontSize: "0.8rem", fontWeight: "700" }}>
                           {u.role}
                         </span>
                       </td>
@@ -275,7 +269,7 @@ const RbacManagement = () => {
                         <select 
                           defaultValue={u.role}
                           onChange={(e) => setSelectedUserRoleUpdates({ ...selectedUserRoleUpdates, [u.id]: e.target.value })}
-                          style={{ padding: "0.4rem", background: "var(--input-bg, #1e293b)", color: "#fff", border: "1px solid #334155", borderRadius: "4px", marginRight: "0.75rem", outline: "none" }}
+                          style={{ padding: "0.4rem", background: "var(--input-bg)", color: "var(--text-main)", border: "1px solid var(--border-color)", borderRadius: "0.4rem", marginRight: "0.75rem", outline: "none", fontSize: "0.8rem" }}
                         >
                           {(matrix.roles || []).map(r => (
                             <option key={r.id} value={r.name}>{r.name}</option>
@@ -283,7 +277,7 @@ const RbacManagement = () => {
                         </select>
                         <button 
                           onClick={() => handleUpdateUserRole(u.id, selectedUserRoleUpdates[u.id] || u.role)} 
-                          style={{ background: "var(--accent-color, #10b981)", color: "#fff", padding: "0.4rem 0.85rem", border: "none", borderRadius: "4px", cursor: "pointer", fontSize: "0.8rem", fontWeight: "bold" }}
+                          style={{ background: "var(--accent-color)", color: "#fff", padding: "0.4rem 0.85rem", border: "none", borderRadius: "0.4rem", cursor: "pointer", fontSize: "0.8rem", fontWeight: "bold" }}
                         >
                           Update Role
                         </button>
@@ -298,10 +292,10 @@ const RbacManagement = () => {
           /* TAB 1 & 2: Matrix Assignments */
           <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: "2rem" }}>
             <div>
-              <h4 style={{ color: "#94a3b8", marginBottom: "0.5rem" }}>Select {activeSubTab === "roles_groups" ? "Role" : "Group"}</h4>
-              <div style={{ maxHeight: "300px", overflowY: "auto", border: "1px solid #334155", borderRadius: "4px", padding: "0.5rem", background: "#0b0f19" }}>
+              <h4 style={{ color: "var(--text-sub)", marginBottom: "0.5rem", fontSize: "0.85rem" }}>Select {activeSubTab === "roles_groups" ? "Role" : "Group"}</h4>
+              <div style={{ maxHeight: "300px", overflowY: "auto", border: "1px solid var(--border-color)", borderRadius: "0.5rem", padding: "0.5rem", background: "var(--input-bg)" }}>
                 {(activeSubTab === "roles_groups" ? filteredRoles : filteredGroups).map(item => (
-                  <div key={item.id} onClick={() => setSelectedPrimaryId(item.id)} style={{ padding: "0.65rem", background: selectedPrimaryId === item.id ? "var(--accent-color, #3b82f6)" : "transparent", cursor: "pointer", borderRadius: "4px", marginBottom: "0.25rem" }}>
+                  <div key={item.id} onClick={() => setSelectedPrimaryId(item.id)} style={{ padding: "0.65rem", background: selectedPrimaryId === item.id ? "var(--accent-color)" : "transparent", color: selectedPrimaryId === item.id ? "#fff" : "var(--text-main)", cursor: "pointer", borderRadius: "0.4rem", marginBottom: "0.25rem", fontSize: "0.85rem", fontWeight: selectedPrimaryId === item.id ? "600" : "400" }}>
                     {item.name}
                   </div>
                 ))}
@@ -309,12 +303,12 @@ const RbacManagement = () => {
             </div>
 
             <div>
-              <h4 style={{ color: "#94a3b8", marginBottom: "0.5rem" }}>Assign {activeSubTab === "roles_groups" ? "Groups" : "Rights"}</h4>
+              <h4 style={{ color: "var(--text-sub)", marginBottom: "0.5rem", fontSize: "0.85rem" }}>Assign {activeSubTab === "roles_groups" ? "Groups" : "Rights"}</h4>
               {selectedPrimaryId ? (
                 <div>
-                  <div style={{ maxHeight: "300px", overflowY: "auto", border: "1px solid #334155", borderRadius: "4px", padding: "0.5rem", background: "#0b0f19" }}>
+                  <div style={{ maxHeight: "300px", overflowY: "auto", border: "1px solid var(--border-color)", borderRadius: "0.5rem", padding: "0.5rem", background: "var(--input-bg)" }}>
                     {(activeSubTab === "roles_groups" ? filteredGroups : filteredRights).map(subItem => (
-                      <label key={subItem.id} style={{ display: "block", padding: "0.5rem", cursor: "pointer" }}>
+                      <label key={subItem.id} style={{ display: "block", padding: "0.5rem", cursor: "pointer", color: "var(--text-main)", fontSize: "0.85rem" }}>
                         <input 
                           type="checkbox" 
                           checked={assignedSecondaryIds.includes(subItem.id)} 
@@ -322,16 +316,16 @@ const RbacManagement = () => {
                             if (e.target.checked) setAssignedSecondaryIds([...assignedSecondaryIds, subItem.id]);
                             else setAssignedSecondaryIds(assignedSecondaryIds.filter(id => id !== subItem.id));
                           }}
-                          style={{ accentColor: "var(--accent-color, #10b981)", marginRight: "0.75rem" }}
+                          style={{ accentColor: "var(--accent-color)", marginRight: "0.75rem" }}
                         />
-                        {subItem.name} <span style={{ color: "#64748b", fontSize: "0.8rem" }}>({subItem.description || ''})</span>
+                        {subItem.name} <span style={{ color: "var(--text-sub)", fontSize: "0.75rem" }}>({subItem.description || ''})</span>
                       </label>
                     ))}
                   </div>
-                  <button onClick={handleSaveMapping} style={{ marginTop: "1rem", background: "var(--accent-color, #10b981)", color: "#fff", padding: "0.6rem 1.25rem", border: "none", borderRadius: "4px", cursor: "pointer", fontWeight: "bold" }}>Save Database Mapping</button>
+                  <button onClick={handleSaveMapping} style={{ marginTop: "1rem", background: "var(--accent-color)", color: "#fff", padding: "0.6rem 1.25rem", border: "none", borderRadius: "0.5rem", cursor: "pointer", fontWeight: "bold", fontSize: "0.8rem" }}>Save Database Mapping</button>
                 </div>
               ) : (
-                <p style={{ color: "#64748b", padding: "2rem 0" }}>Select a {activeSubTab === "roles_groups" ? "role" : "group"} on the left to configure assignments.</p>
+                <p style={{ color: "var(--text-sub)", padding: "2rem 0", fontSize: "0.85rem" }}>Select a {activeSubTab === "roles_groups" ? "role" : "group"} on the left to configure assignments.</p>
               )}
             </div>
           </div>
