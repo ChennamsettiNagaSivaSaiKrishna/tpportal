@@ -1,20 +1,32 @@
 const jwt = require('jsonwebtoken');
 
 const verifyToken = (req, res, next) => {
-  // Read token from secure HTTP-only cookie instead of localStorage/headers
-  const token = req.cookies?.token || req.headers['authorization']?.split(' ')[1];
+  // Support Bearer token from headers, cookies, or body
+  const authHeader = req.headers['authorization'];
+  const token = (authHeader && authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : null)
+    || req.cookies?.token
+    || req.headers['x-access-token'];
 
   if (!token) {
-    return res.status(401).json({ success: false, message: 'Access denied. No session token provided.' });
+    return res.status(401).json({ 
+      success: false, 
+      message: 'Access denied. No authentication token provided.' 
+    });
   }
 
   try {
-    const verified = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = verified; // Attaches { id, email } to request pipeline
+    const secret = process.env.JWT_SECRET || 'tp_portal_super_secret_key_2026';
+    const verified = jwt.verify(token, secret);
+    req.user = verified; // { id, email, role, ... }
     next();
   } catch (err) {
-    return res.status(403).json({ success: false, message: 'Invalid or expired session token.' });
+    return res.status(401).json({ 
+      success: false, 
+      message: 'Invalid or expired authentication session token.' 
+    });
   }
 };
 
+// Export both default function and named object property for universal compatibility
+verifyToken.verifyToken = verifyToken;
 module.exports = verifyToken;

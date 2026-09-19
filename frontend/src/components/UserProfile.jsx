@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { ChevronUp, Check } from "lucide-react";
+import { ChevronUp } from "lucide-react";
 
 export default function UserProfile({ isExpanded, currentUser }) {
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
@@ -121,7 +121,7 @@ export default function UserProfile({ isExpanded, currentUser }) {
           {isExpanded && (
             <div style={{ textAlign: "left", overflow: "hidden" }}>
               <div style={{ fontSize: "1rem", fontWeight: "700", color: "white", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                {"iuhuihguygy7gy7tg6tyg6tg6g6tg6tg6tg6tguser"}
+                {"user"}
               </div>
             </div>
           )}

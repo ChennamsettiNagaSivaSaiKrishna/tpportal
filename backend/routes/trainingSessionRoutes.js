@@ -1,37 +1,55 @@
 const express = require('express');
 const router = express.Router();
-const trainingSessionController = require('../controllers/trainingSessionController'); // Adjust controller path if needed
+const trainingSessionController = require('../controllers/trainingSessionController');
 const verifyToken = require('../middleware/authMiddleware');
-const rightMiddleware = require('../middleware/rightMiddleware');
+const { requirePermission } = require('../middleware/permissionMiddleware');
 
-// Safely resolve requireRight middleware
-const requireRight = typeof rightMiddleware === 'function'
-  ? rightMiddleware
-  : (rightMiddleware?.requireRight || (() => (req, res, next) => next()));
-
-// Training Session Routes secured via secure token authentication
+// 1. Get All Sessions
 router.get(
   '/',
   verifyToken,
-  trainingSessionController.getAllSessions || ((req, res) => res.json({ success: true, sessions: [] }))
+  requirePermission('TRAINING_SESSION_VIEW'),
+  trainingSessionController.getAllSessions
 );
 
+// 2. Get Sessions By Batch ID
+router.get(
+  '/batch/:batchId',
+  verifyToken,
+  requirePermission('TRAINING_SESSION_VIEW'),
+  trainingSessionController.getSessionsByBatch
+);
+
+// 3. Get Session By ID
+router.get(
+  '/:id',
+  verifyToken,
+  requirePermission('TRAINING_SESSION_VIEW'),
+  trainingSessionController.getSessionById
+);
+
+// 4. Create Training Session
 router.post(
   '/',
   verifyToken,
-  trainingSessionController.createSession || ((req, res) => res.json({ success: true, message: 'Session created' }))
+  requirePermission('TRAINING_SESSION_CREATE'),
+  trainingSessionController.createSession
 );
 
+// 5. Update Training Session
 router.put(
   '/:id',
   verifyToken,
-  trainingSessionController.updateSession || ((req, res) => res.json({ success: true, message: 'Session updated' }))
+  requirePermission('TRAINING_SESSION_UPDATE'),
+  trainingSessionController.updateSession
 );
 
+// 6. Delete Training Session
 router.delete(
   '/:id',
   verifyToken,
-  trainingSessionController.deleteSession || ((req, res) => res.json({ success: true, message: 'Session deleted' }))
+  requirePermission('TRAINING_SESSION_DELETE'),
+  trainingSessionController.deleteSession
 );
 
 module.exports = router;

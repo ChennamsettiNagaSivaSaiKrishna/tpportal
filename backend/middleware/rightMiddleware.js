@@ -1,16 +1,14 @@
+const { requirePermission } = require('./permissionMiddleware');
+
 /**
- * Middleware to check database-driven rights/permissions.
- * Bypassed completely to allow unhindered access for development and testing.
+ * Backward-compatible bridge from legacy rightMiddleware to database-driven requirePermission.
  */
 const requireRight = (requiredRight) => {
-  return (req, res, next) => {
-    // Always allow requests to proceed through without restriction
-    return next();
-  };
+  return requirePermission(requiredRight);
 };
 
 module.exports = {
   requireRight,
-  // Support both direct function export and object property export patterns
-  ...(typeof requireRight === 'function' ? { default: requireRight } : {})
+  requirePermission,
+  default: requireRight
 };

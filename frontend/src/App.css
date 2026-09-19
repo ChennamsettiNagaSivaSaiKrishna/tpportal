@@ -1115,3 +1115,104 @@
   .metrics-section-heading { text-align: center; }
   .landing-global-footer { text-align: center; }
 }
+
+/* ==========================================================================
+   FORGOT PASSWORD & OTP COMPONENT STYLES
+   ========================================================================== */
+.reset-step-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.75rem;
+  gap: 0.5rem;
+}
+
+.step-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--bg-card, #11141a);
+  border: 1.5px solid var(--border-color, #27272a);
+  color: var(--text-sub, #71717a);
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.step-dot.active {
+  background: var(--accent-color, #10b981);
+  border-color: var(--accent-color, #10b981);
+  color: #ffffff;
+  box-shadow: 0 0 12px var(--accent-glow, rgba(16, 185, 129, 0.4));
+}
+
+.step-line {
+  flex: 0 0 36px;
+  height: 2px;
+  background: var(--border-color, #27272a);
+  transition: background 0.3s ease;
+}
+
+.step-line.active {
+  background: var(--accent-color, #10b981);
+}
+
+.otp-inputs-wrapper {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 0.75rem 0;
+}
+
+.otp-digit-input {
+  width: 44px;
+  height: 52px;
+  text-align: center;
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  border-radius: 8px;
+  border: 1px solid var(--border-color, #27272a);
+  background: var(--bg-card, #0f1319);
+  color: var(--text-title, #ffffff);
+  transition: all 0.2s ease;
+}
+
+.otp-digit-input:focus {
+  outline: none;
+  border-color: var(--accent-color, #10b981);
+  box-shadow: 0 0 0 2px var(--accent-glow, rgba(16, 185, 129, 0.3));
+  transform: translateY(-2px);
+}
+
+.otp-timer-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.5rem;
+  margin-bottom: 1.5rem;
+  padding: 0 0.25rem;
+}
+
+.resend-otp-btn {
+  background: none;
+  border: none;
+  color: var(--accent-color, #10b981);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  transition: text-decoration 0.2s;
+}
+
+.resend-otp-btn:hover {
+  text-decoration: underline;
+}
+
+.resend-otp-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

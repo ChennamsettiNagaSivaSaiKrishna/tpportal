@@ -5,6 +5,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import Home from '../pages/Home/Home';
 import IndustryLoginSelection from '../pages/Home/LoginSelection';
 import Login from '../pages/Auth/Login';
+import ForgotPassword from '../pages/Auth/ForgotPassword';
 import StudentDashboard from '../pages/Student/Dashboard';
 import AttendanceWorkspace from '../pages/Attendance/AttendanceWorkspace';
 
@@ -19,6 +20,7 @@ const AppRoutes = () => {
       <Route path="/login-select" element={<IndustryLoginSelection />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Login />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
 
       {/* 🔒 Secured Dashboard Route (Protected by NAV_METRICS Right) */}
       <Route element={<RoleRoute requiredRight="NAV_METRICS" />}>

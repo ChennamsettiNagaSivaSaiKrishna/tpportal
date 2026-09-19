@@ -1,37 +1,47 @@
 const express = require('express');
 const router = express.Router();
-const trainingPhaseController = require('../controllers/trainingPhaseController'); // Adjust controller path if needed
+const trainingPhaseController = require('../controllers/trainingPhaseController');
 const verifyToken = require('../middleware/authMiddleware');
-const rightMiddleware = require('../middleware/rightMiddleware');
+const { requirePermission } = require('../middleware/permissionMiddleware');
 
-// Safely resolve requireRight middleware
-const requireRight = typeof rightMiddleware === 'function'
-  ? rightMiddleware
-  : (rightMiddleware?.requireRight || (() => (req, res, next) => next()));
-
-// Training Phase Routes secured via secure token authentication
+// 1. Get All Phases
 router.get(
   '/',
   verifyToken,
-  trainingPhaseController.getAllPhases || ((req, res) => res.json({ success: true, phases: [] }))
+  requirePermission('TRAINING_PHASE_VIEW'),
+  trainingPhaseController.getAllPhases
 );
 
+// 2. Get Phase Details by ID
+router.get(
+  '/:id',
+  verifyToken,
+  requirePermission('TRAINING_PHASE_VIEW'),
+  trainingPhaseController.getPhaseById
+);
+
+// 3. Create Phase
 router.post(
   '/',
   verifyToken,
-  trainingPhaseController.createPhase || ((req, res) => res.json({ success: true, message: 'Phase created' }))
+  requirePermission('TRAINING_PHASE_CREATE'),
+  trainingPhaseController.createPhase
 );
 
+// 4. Update Phase
 router.put(
   '/:id',
   verifyToken,
-  trainingPhaseController.updatePhase || ((req, res) => res.json({ success: true, message: 'Phase updated' }))
+  requirePermission('TRAINING_PHASE_UPDATE'),
+  trainingPhaseController.updatePhase
 );
 
+// 5. Delete Phase
 router.delete(
   '/:id',
   verifyToken,
-  trainingPhaseController.deletePhase || ((req, res) => res.json({ success: true, message: 'Phase deleted' }))
+  requirePermission('TRAINING_PHASE_DELETE'),
+  trainingPhaseController.deletePhase
 );
 
 module.exports = router;

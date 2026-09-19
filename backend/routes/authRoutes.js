@@ -10,6 +10,11 @@ router.post('/register', authController.register);
 // 2. User Login Route
 router.post('/login', authController.login);
 
+// 2.1 Password Reset Routes (OTP-based)
+router.post('/forgot-password', authController.forgotPassword);
+router.post('/verify-otp', authController.verifyOtp);
+router.post('/reset-password', authController.resetPassword);
+
 // 3. User Logout Route (if handled in controller, or basic handler)
 router.post('/logout', (req, res) => {
   if (typeof authController.logout === 'function') {

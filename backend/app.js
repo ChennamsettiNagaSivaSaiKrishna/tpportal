@@ -51,7 +51,6 @@ const managementProfileRoutes = require("./routes/managementProfileRoutes");
 const placementTeamProfileRoutes = require("./routes/placementTeamProfileRoutes");
 const systemPermissionRoutes = require("./routes/systemPermissionRoutes");
 const rolePermissionMappingRoutes = require("./routes/rolePermissionMappingRoutes");
-const adminRbacRoutes = require('./routes/adminRbacRoutes'); // or authRoutes
 
 // Communications & Announcements Modules
 const announcementRoutes = require("./routes/announcementRoutes");

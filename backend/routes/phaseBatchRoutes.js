@@ -1,37 +1,55 @@
 const express = require('express');
 const router = express.Router();
-const trainingPhaseController = require('../controllers/trainingPhaseController'); // Adjust controller path if needed
+const phaseBatchController = require('../controllers/phaseBatchController');
 const verifyToken = require('../middleware/authMiddleware');
-const rightMiddleware = require('../middleware/rightMiddleware');
+const { requirePermission } = require('../middleware/permissionMiddleware');
 
-// Safely resolve requireRight middleware
-const requireRight = typeof rightMiddleware === 'function'
-  ? rightMiddleware
-  : (rightMiddleware?.requireRight || (() => (req, res, next) => next()));
-
-// Training Phase Routes secured via secure token authentication
+// 1. Get All Batches
 router.get(
   '/',
   verifyToken,
-  trainingPhaseController.getAllPhases || ((req, res) => res.json({ success: true, phases: [] }))
+  requirePermission('PHASE_BATCH_VIEW'),
+  phaseBatchController.getAllBatches
 );
 
+// 2. Get Batches By Phase ID
+router.get(
+  '/phase/:phaseId',
+  verifyToken,
+  requirePermission('PHASE_BATCH_VIEW'),
+  phaseBatchController.getBatchesByPhase
+);
+
+// 3. Get Batch By ID
+router.get(
+  '/:id',
+  verifyToken,
+  requirePermission('PHASE_BATCH_VIEW'),
+  phaseBatchController.getBatchById
+);
+
+// 4. Create Batch
 router.post(
   '/',
   verifyToken,
-  trainingPhaseController.createPhase || ((req, res) => res.json({ success: true, message: 'Phase created' }))
+  requirePermission('PHASE_BATCH_CREATE'),
+  phaseBatchController.createBatch
 );
 
+// 5. Update Batch
 router.put(
   '/:id',
   verifyToken,
-  trainingPhaseController.updatePhase || ((req, res) => res.json({ success: true, message: 'Phase updated' }))
+  requirePermission('PHASE_BATCH_UPDATE'),
+  phaseBatchController.updateBatch
 );
 
+// 6. Delete Batch
 router.delete(
   '/:id',
   verifyToken,
-  trainingPhaseController.deletePhase || ((req, res) => res.json({ success: true, message: 'Phase deleted' }))
+  requirePermission('PHASE_BATCH_DELETE'),
+  phaseBatchController.deleteBatch
 );
 
 module.exports = router;
